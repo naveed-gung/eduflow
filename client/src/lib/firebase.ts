@@ -3,13 +3,13 @@ import { getAuth, GoogleAuthProvider } from 'firebase/auth';
 import { getStorage } from 'firebase/storage';
 
 // Firebase configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyDK-Avats0D5qNVsdESnpkbgLHykShsbA0",
-  authDomain: "eduflow-6a918.firebaseapp.com",
-  projectId: "eduflow-6a918",
-  storageBucket: "eduflow-6a918.firebasestorage.app",
-  messagingSenderId: "123456789012", // Replace with actual messagingSenderId when available
-  appId: "1:123456789012:web:abc123def456", // Replace with actual appId when available
+const firebaseConfig = { 
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
 // Initialize Firebase
