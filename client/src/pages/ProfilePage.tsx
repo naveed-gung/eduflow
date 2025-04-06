@@ -297,7 +297,7 @@ const ProfilePage = () => {
                       {isLoading ? (
                         <LoaderCircle className="h-4 w-4 animate-spin" />
                       ) : (
-                        <Camera className="h-4 w-4" />
+                      <Camera className="h-4 w-4" />
                       )}
                     </Button>
                     <input
@@ -443,8 +443,8 @@ const ProfilePage = () => {
                     
                     <div>
                       <Label htmlFor="bio">Bio</Label>
-                      <textarea 
-                        id="bio" 
+                      <textarea
+                        id="bio"
                         placeholder="Tell us about yourself" 
                         className="w-full p-2 text-sm min-h-[100px] rounded-md border border-input bg-background"
                         value={bio}
@@ -496,8 +496,8 @@ const ProfilePage = () => {
                     <Button onClick={handleSaveProfile} disabled={isLoading}>
                       {isLoading && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
                       Save Changes
-                    </Button>
-                  </div>
+                      </Button>
+                    </div>
                 </Card>
               </TabsContent>
               
@@ -525,20 +525,20 @@ const ProfilePage = () => {
                       </div>
                       
                       <div className="flex items-center justify-between">
-                        <div>
+                          <div>
                           <h3 className="font-medium">Course Updates</h3>
-                          <p className="text-sm text-muted-foreground">
+                            <p className="text-sm text-muted-foreground">
                             Get notified when new content is added to your enrolled courses
-                          </p>
-                        </div>
+                            </p>
+                          </div>
                         <div className="flex items-center space-x-2">
                           <Label htmlFor="course-updates" className="sr-only">
                             Course Updates
                           </Label>
                           <Input type="checkbox" id="course-updates" className="w-5 h-5" defaultChecked />
                         </div>
-                      </div>
-                      
+                    </div>
+                    
                       <div className="flex items-center justify-between">
                         <div>
                           <h3 className="font-medium">Marketing</h3>

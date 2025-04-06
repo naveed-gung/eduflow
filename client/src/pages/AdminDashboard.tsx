@@ -311,12 +311,12 @@ const AdminDashboard = () => {
                       ))
                     ) : filteredCourses.length > 0 ? (
                       filteredCourses.map((course) => (
-                        <TableRow key={course.id}>
+                      <TableRow key={course.id}>
                           <TableCell className="font-medium py-3 truncate max-w-[120px] md:max-w-none">
                             {course.title}
-                          </TableCell>
-                          <TableCell className="hidden md:table-cell">{course.category}</TableCell>
-                          <TableCell className="hidden md:table-cell">
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell">{course.category}</TableCell>
+                        <TableCell className="hidden md:table-cell">
                             {course.isPublished ? (
                               <span className="inline-flex bg-green-500/10 text-green-500 text-xs px-2 py-1 rounded-full">
                                 Published
@@ -324,40 +324,40 @@ const AdminDashboard = () => {
                             ) : (
                               <span className="inline-flex bg-amber-500/10 text-amber-500 text-xs px-2 py-1 rounded-full">
                                 Draft
-                              </span>
+                          </span>
                             )}
-                          </TableCell>
-                          <TableCell className="text-right">{course.students}</TableCell>
+                        </TableCell>
+                        <TableCell className="text-right">{course.students}</TableCell>
                           <TableCell className="text-right">${course.revenue.toFixed(2)}</TableCell>
-                          <TableCell className="text-right">
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
+                        <TableCell className="text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" size="icon" className="h-8 w-8">
                                   <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
                                 <DropdownMenuItem onClick={() => handleViewCourse(course)}>
                                   <Eye className="mr-2 h-4 w-4" />
                                   View Course
                                 </DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => handleEditCourse(course)}>
-                                  <FileEdit className="mr-2 h-4 w-4" />
+                                <FileEdit className="mr-2 h-4 w-4" />
                                   Edit Course
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
                                 <DropdownMenuItem 
                                   className="text-destructive"
                                   onClick={() => handleDeleteCourse(course)}
                                 >
                                   <Trash2 className="mr-2 h-4 w-4" />
-                                  Delete
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </TableCell>
-                        </TableRow>
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
                       ))
                     ) : (
                       <TableRow>
@@ -390,11 +390,11 @@ const AdminDashboard = () => {
               <div className="space-y-4">
                 {recentStudents.length > 0 ? (
                   recentStudents.map((student) => (
-                    <div 
-                      key={student.id} 
+                  <div 
+                    key={student.id}
                       className="flex items-center justify-between py-2 border-b border-border/50 last:border-0"
-                    >
-                      <div className="flex items-center gap-3">
+                  >
+                    <div className="flex items-center gap-3">
                         <Avatar>
                           <AvatarFallback>
                             {student.name.split(' ').map(n => n[0]).join('').toUpperCase()}

@@ -46,7 +46,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const checkAuth = async () => {
       const token = localStorage.getItem('eduflow-token');
-      const storedUser = localStorage.getItem('eduflow-user');
+    const storedUser = localStorage.getItem('eduflow-user');
       const tokenExpiry = localStorage.getItem('eduflow-token-expiry');
       
       if (token && storedUser) {
@@ -69,7 +69,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           
           // You can validate the token with the server if needed
           // For now, we'll just set the user from local storage
-          setUser(JSON.parse(storedUser));
+      setUser(JSON.parse(storedUser));
         } catch (error) {
           console.error('Auth token validation error:', error);
           // Clear invalid auth data
@@ -79,7 +79,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       }
       
-      setIsLoading(false);
+    setIsLoading(false);
     };
     
     checkAuth();
@@ -114,10 +114,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       setUser(userData);
       
-      toast({
-        title: "Login Successful",
+        toast({
+          title: "Login Successful",
         description: `Welcome back${userData.name ? ', ' + userData.name : ''}!`,
-      });
+        });
     } catch (error) {
       console.error('Login error:', error);
       let errorMessage = 'Invalid credentials';
@@ -208,12 +208,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Remove auth header
       delete axios.defaults.headers.common['Authorization'];
       
-      setUser(null);
+    setUser(null);
       
-      toast({
-        title: "Logged Out",
-        description: "You have been successfully logged out",
-      });
+    toast({
+      title: "Logged Out",
+      description: "You have been successfully logged out",
+    });
       
       // Redirect to signin page
       window.location.href = '/signin';

@@ -255,16 +255,16 @@ export function DashboardStats({ role, className }: DashboardStatsProps) {
       </div>
       
       {/* Charts section */}
-      {role === 'admin' ? (
-        // Admin charts
+        {role === 'admin' ? (
+          // Admin charts
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
           <Card className="col-span-1">
-            <CardHeader>
-              <CardTitle>Course Performance</CardTitle>
-            </CardHeader>
+              <CardHeader>
+                <CardTitle>Course Performance</CardTitle>
+              </CardHeader>
             <CardContent className="px-2 sm:px-6">
               <div className="h-[300px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
+                  <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={stats.coursePerformance}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis 
@@ -277,38 +277,38 @@ export function DashboardStats({ role, className }: DashboardStatsProps) {
                     <Tooltip />
                     <Bar yAxisId="left" dataKey="students" fill="#ff5470" name="Students" />
                     <Bar yAxisId="right" dataKey="completion" fill="#00ebc7" name="Completion %" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-          
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+            
           <Card className="col-span-1">
-            <CardHeader>
-              <CardTitle>Category Distribution</CardTitle>
-            </CardHeader>
-            <CardContent>
+              <CardHeader>
+                <CardTitle>Category Distribution</CardTitle>
+              </CardHeader>
+              <CardContent>
               <div className="h-[300px] w-full flex items-center justify-center">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={stats.categoryDistribution}
-                      cx="50%"
-                      cy="50%"
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={stats.categoryDistribution}
+                        cx="50%"
+                        cy="50%"
                       labelLine={false}
                       outerRadius={80}
                       fill="#8884d8"
-                      dataKey="value"
+                        dataKey="value"
                       nameKey="name"
-                    >
-                      {stats.categoryDistribution.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
+                      >
+                        {stats.categoryDistribution.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
                     <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
               
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-4">
                 {stats.categoryDistribution.map((item, index) => (
@@ -321,35 +321,35 @@ export function DashboardStats({ role, className }: DashboardStatsProps) {
                   </div>
                 ))}
               </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
         </div>
-      ) : (
-        // Student charts
+        ) : (
+          // Student charts
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
           <Card className="col-span-1">
-            <CardHeader>
+              <CardHeader>
               <CardTitle>Weekly Progress</CardTitle>
-            </CardHeader>
+              </CardHeader>
             <CardContent className="px-2 sm:px-6">
               <div className="h-[250px] sm:h-[300px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
+                  <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={stats.weeklyProgress}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="name" fontSize={12} />
-                    <YAxis />
+                      <YAxis />
                     <Tooltip />
                     <Bar dataKey="hours" fill="#00ebc7" name="Hours" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-          
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+            
           <Card className="col-span-1">
-            <CardHeader>
-              <CardTitle>Course Progress</CardTitle>
-            </CardHeader>
+              <CardHeader>
+                <CardTitle>Course Progress</CardTitle>
+              </CardHeader>
             <CardContent>
               <div className="h-[250px] sm:h-[300px] w-full flex items-center justify-center">
                 <ResponsiveContainer width="100%" height="100%">
@@ -371,7 +371,7 @@ export function DashboardStats({ role, className }: DashboardStatsProps) {
                     <Tooltip />
                   </PieChart>
                 </ResponsiveContainer>
-              </div>
+                    </div>
               
               <div className="grid grid-cols-2 gap-2 mt-4">
                 {stats.courseProgress.map((item, index) => (
@@ -384,24 +384,24 @@ export function DashboardStats({ role, className }: DashboardStatsProps) {
                   </div>
                 ))}
               </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
         </div>
-      )}
+        )}
     </div>
   );
 }
 
 // Custom icons
 const BookIcon = ({ className }: { className?: string }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
+  <svg 
+    xmlns="http://www.w3.org/2000/svg" 
+    viewBox="0 0 24 24" 
+    fill="none" 
+    stroke="currentColor" 
+    strokeWidth="2" 
+    strokeLinecap="round" 
+    strokeLinejoin="round" 
     className={className}
   >
     <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
@@ -409,14 +409,14 @@ const BookIcon = ({ className }: { className?: string }) => (
 );
 
 const DollarSignIcon = ({ className }: { className?: string }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
+  <svg 
+    xmlns="http://www.w3.org/2000/svg" 
+    viewBox="0 0 24 24" 
+    fill="none" 
+    stroke="currentColor" 
+    strokeWidth="2" 
+    strokeLinecap="round" 
+    strokeLinejoin="round" 
     className={className}
   >
     <line x1="12" y1="1" x2="12" y2="23" />
