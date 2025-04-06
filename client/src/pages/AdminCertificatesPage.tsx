@@ -38,6 +38,7 @@ import { Award, MoreHorizontal, Search, Eye } from 'lucide-react';
 import { CertificateViewer } from '@/components/CertificateViewer';
 import { PageHeader } from '@/components/PageHeader';
 import api from '@/lib/api';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface CertificateType {
   _id: string;
@@ -188,41 +189,72 @@ const AdminCertificatesPage = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {certificates.map((certificate) => (
-                      <TableRow key={certificate._id}>
-                        <TableCell className="font-medium">
-                          {certificate.certificateNumber}
-                        </TableCell>
-                        <TableCell>
-                          {certificate.userId?.name || 'Unknown User'}
-                          <div className="text-xs text-muted-foreground">
-                            {certificate.userId?.email}
-                          </div>
-                        </TableCell>
-                        <TableCell>{certificate.courseName}</TableCell>
-                        <TableCell>{formatDate(certificate.issueDate)}</TableCell>
-                        <TableCell>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" className="h-8 w-8 p-0">
-                                <span className="sr-only">Open menu</span>
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem onClick={() => 
-                                handleViewCertificate(certificate, certificate.userId?.name || 'User')
-                              }>
-                                <Eye className="h-4 w-4 mr-2" />
-                                View Certificate
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                    {isLoading ? (
+                      Array(5).fill(0).map((_, i) => (
+                        <TableRow key={i}>
+                          <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                          <TableCell><Skeleton className="h-4 w-36" /></TableCell>
+                          <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                          <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                          <TableCell><Skeleton className="h-4 w-4" /></TableCell>
+                        </TableRow>
+                      ))
+                    ) : certificates.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={5} className="h-24 text-center">
+                          <Award className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                          <p className="text-muted-foreground">No certificates found</p>
+                          {searchQuery && (
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="mt-2"
+                              onClick={() => {
+                                setSearchQuery('');
+                                setCertificates([]);
+                                fetchCertificates();
+                              }}
+                            >
+                              Clear search
+                            </Button>
+                          )}
                         </TableCell>
                       </TableRow>
-                    ))}
+                    ) : (
+                      (certificates || []).map((certificate) => (
+                        <TableRow key={certificate._id}>
+                          <TableCell className="font-mono text-xs">
+                            {certificate.certificateNumber}
+                          </TableCell>
+                          <TableCell>
+                            {certificate.userId?.name || 'Unknown User'}
+                            <div className="text-xs text-muted-foreground">
+                              {certificate.userId?.email || 'No email'}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            {certificate.courseId?.title || certificate.courseName || 'Unknown Course'}
+                          </TableCell>
+                          <TableCell>{formatDate(certificate.issueDate)}</TableCell>
+                          <TableCell>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                  <span className="sr-only">Open menu</span>
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => handleViewCertificate(certificate, certificate.userId?.name || 'Student')}>
+                                  <Eye className="mr-2 h-4 w-4" />
+                                  View Certificate
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
                   </TableBody>
                 </Table>
               </div>

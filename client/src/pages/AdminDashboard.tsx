@@ -97,17 +97,28 @@ const AdminDashboard = () => {
       // Fetch courses
       const coursesResponse = await api.get('/courses/admin');
 
-      if (coursesResponse.data.success && coursesResponse.data.courses) {
+      if (coursesResponse.data.success && 
+          coursesResponse.data.courses && 
+          Array.isArray(coursesResponse.data.courses)) {
         setCourses(coursesResponse.data.courses);
+      } else {
+        // Set empty array if no courses returned
+        setCourses([]);
       }
       
       // Fetch recent students
       try {
         const studentsResponse = await api.get('/users/recent-students');
         
-        if (studentsResponse.data.success && studentsResponse.data.students) {
+        if (studentsResponse.data.success && 
+            studentsResponse.data.students && 
+            Array.isArray(studentsResponse.data.students)) {
           setRecentStudents(studentsResponse.data.students);
           setStudentCount(studentsResponse.data.totalCount || 0);
+        } else {
+          // Set empty array if no students returned
+          setRecentStudents([]);
+          setStudentCount(0);
         }
       } catch (error) {
         console.error('Error fetching students:', error);
@@ -117,7 +128,7 @@ const AdminDashboard = () => {
     } catch (error) {
       console.error('Error fetching courses:', error);
       // Keep using mock data if API fails
-      setCourses(getAdminCourses());
+      setCourses([]);
       // Error toast is handled by API interceptor
     } finally {
       setIsLoading(false);

@@ -35,7 +35,24 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 // Configure CORS for deployment
 const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
 app.use(cors({
-  origin: [clientUrl, 'https://eduflow.onrender.com'],
+  origin: function(origin, callback) {
+    // Allow requests with no origin (like mobile apps, curl, etc)
+    if (!origin) return callback(null, true);
+    
+    // Allow requests from localhost, local IPs, and render domain
+    const allowedOrigins = [
+      'http://localhost:5173',
+      'https://eduflow.onrender.com'
+    ];
+    
+    // Allow any local network IP (192.168.*)
+    if (origin.match(/^http:\/\/192\.168\.\d+\.\d+:\d+$/) || 
+        allowedOrigins.indexOf(origin) !== -1) {
+      return callback(null, true);
+    }
+    
+    callback(new Error('Not allowed by CORS'));
+  },
   credentials: true
 }));
 

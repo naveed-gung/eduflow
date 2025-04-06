@@ -82,10 +82,20 @@ export function DashboardStats({ role, className }: DashboardStatsProps) {
       try {
         if (role === 'student') {
           const response = await api.get(`/users/dashboard-stats`);
-          setStudentStats(response.data);
+          setStudentStats({
+            ...studentStats,
+            ...response.data,
+            weeklyProgress: response.data.weeklyProgress || studentStats.weeklyProgress,
+            courseProgress: response.data.courseProgress || []
+          });
         } else if (role === 'admin') {
           const response = await api.get(`/users/admin/dashboard-stats`);
-          setAdminStats(response.data);
+          setAdminStats({
+            ...adminStats,
+            ...response.data,
+            coursePerformance: response.data.coursePerformance || [],
+            categoryDistribution: response.data.categoryDistribution || []
+          });
         }
       } catch (error) {
         console.error(`Error fetching ${role} dashboard stats:`, error);
