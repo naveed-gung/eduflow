@@ -15,11 +15,7 @@
 EduFlow is a comprehensive full-stack e-learning platform built with the MERN stack (MongoDB, Express, React, Node.js). It delivers a modern learning experience with an intuitive interface, interactive courses, and powerful admin tools. 🌟
 
 <div align="center">
-  <img src="https://firebasestorage.googleapis.com/v0/b/eduflow-6a918.appspot.com/o/overview.png?alt=media" alt="EduFlow Overview" width="800"/>
-</div>
-
-<div align="center">
-  <img src="placeholder.png" alt="EduFlow Platform Screenshot" width="800"/>
+  <img src="client/public/placeholder.png" alt="EduFlow Platform Screenshot" width="800"/>
   <p>🎓 <i>Transform your learning journey with EduFlow's interactive experience!</i> 🎓</p>
 </div>
 
