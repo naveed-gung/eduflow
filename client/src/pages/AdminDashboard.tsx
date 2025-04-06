@@ -35,9 +35,12 @@ import {
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { CourseForm } from '@/components/CourseForm';
+import axios from 'axios';
 import { toast } from 'sonner';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import api from '@/lib/api';
+
+// API Base URL
+const API_BASE_URL = 'http://localhost:5000/api';
 
 // Student interface
 interface Student {
@@ -93,32 +96,31 @@ const AdminDashboard = () => {
   const fetchCourses = async () => {
     try {
       setIsLoading(true);
+      const token = localStorage.getItem('eduflow-token');
+      if (!token) return;
 
       // Fetch courses
-      const coursesResponse = await api.get('/courses/admin');
+      const coursesResponse = await axios.get(`${API_BASE_URL}/courses/admin`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
 
-      if (coursesResponse.data.success && 
-          coursesResponse.data.courses && 
-          Array.isArray(coursesResponse.data.courses)) {
+      if (coursesResponse.data.success && coursesResponse.data.courses) {
         setCourses(coursesResponse.data.courses);
-      } else {
-        // Set empty array if no courses returned
-        setCourses([]);
       }
       
       // Fetch recent students
       try {
-        const studentsResponse = await api.get('/users/recent-students');
+        const studentsResponse = await axios.get(`${API_BASE_URL}/users/recent-students`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
         
-        if (studentsResponse.data.success && 
-            studentsResponse.data.students && 
-            Array.isArray(studentsResponse.data.students)) {
+        if (studentsResponse.data.success && studentsResponse.data.students) {
           setRecentStudents(studentsResponse.data.students);
           setStudentCount(studentsResponse.data.totalCount || 0);
-        } else {
-          // Set empty array if no students returned
-          setRecentStudents([]);
-          setStudentCount(0);
         }
       } catch (error) {
         console.error('Error fetching students:', error);
@@ -128,8 +130,8 @@ const AdminDashboard = () => {
     } catch (error) {
       console.error('Error fetching courses:', error);
       // Keep using mock data if API fails
-      setCourses([]);
-      // Error toast is handled by API interceptor
+      setCourses(getAdminCourses());
+      toast.error('Failed to fetch courses from the server');
     } finally {
       setIsLoading(false);
     }
@@ -164,8 +166,14 @@ const AdminDashboard = () => {
 
     try {
       setIsLoading(true);
+      const token = localStorage.getItem('eduflow-token');
+      if (!token) return;
 
-      const response = await api.delete(`/courses/${selectedCourse.id}`);
+      const response = await axios.delete(`${API_BASE_URL}/courses/${selectedCourse.id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
 
       if (response.data.success) {
         toast.success('Course deleted successfully');
@@ -175,7 +183,7 @@ const AdminDashboard = () => {
       }
     } catch (error) {
       console.error('Error deleting course:', error);
-      // Error toast is handled by API interceptor
+      toast.error('An error occurred while deleting the course');
     } finally {
       setIsLoading(false);
       setIsDeleteDialogOpen(false);
@@ -193,7 +201,14 @@ const AdminDashboard = () => {
   // Remove student
   const handleRemoveStudent = async (studentId: string) => {
     try {
-      const response = await api.delete(`/users/${studentId}`);
+      const token = localStorage.getItem('eduflow-token');
+      if (!token) return;
+
+      const response = await axios.delete(`${API_BASE_URL}/users/${studentId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
 
       if (response.data.success) {
         toast.success('Student removed successfully');
@@ -206,7 +221,7 @@ const AdminDashboard = () => {
       }
     } catch (error) {
       console.error('Error removing student:', error);
-      // Error toast is handled by API interceptor
+      toast.error('An error occurred while removing the student');
     }
   };
 

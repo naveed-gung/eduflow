@@ -4,13 +4,16 @@ import { Progress } from "@/components/ui/progress";
 import { CourseGrid } from "@/components/CourseGrid";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from '@/context/AuthProvider';
+import axios from 'axios';
 import { toast } from 'sonner';
 import { BookOpen, Clock, GraduationCap, Trophy, Award, ArrowUpRight, Star, BookCheck } from 'lucide-react';
 import { CertificateCard } from '@/components/CertificateCard';
 import { CertificateViewer } from '@/components/CertificateViewer';
 import { Button } from "@/components/ui/button";
 import { useNavigate } from 'react-router-dom';
-import api from '@/lib/api';
+
+// API base URL
+const API_BASE_URL = 'http://localhost:5000/api';
 
 const StudentDashboard = () => {
   const { user } = useAuth();
@@ -35,85 +38,77 @@ const StudentDashboard = () => {
     const fetchDashboardData = async () => {
       try {
         setIsLoading(true);
+        const token = localStorage.getItem('eduflow-token');
+        if (!token) return;
         
         // Fetch enrolled courses
-        const coursesResponse = await api.get('/courses/enrolled');
+        const coursesResponse = await axios.get(`${API_BASE_URL}/courses/enrolled`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
         
-        // Make sure enrolledCourses exists and is an array before mapping
-        if (coursesResponse.data.success && 
-            coursesResponse.data.enrolledCourses && 
-            Array.isArray(coursesResponse.data.enrolledCourses)) {
-          
+        if (coursesResponse.data.success && coursesResponse.data.enrolledCourses) {
           // Transform enrolled courses to match CourseProps interface
           const formattedCourses = coursesResponse.data.enrolledCourses.map(enrollment => ({
-            id: enrollment.courseId?._id || '',
-            title: enrollment.courseId?.title || 'Untitled Course',
-            description: enrollment.courseId?.description || '',
-            instructor: enrollment.courseId?.instructorName || 'Instructor',
-            thumbnailUrl: enrollment.courseId?.thumbnail || '/placeholder.jpg',
-            category: enrollment.courseId?.level || 'beginner',
-            duration: enrollment.courseId?.duration || '0h',
+            id: enrollment.courseId._id,
+            title: enrollment.courseId.title,
+            description: enrollment.courseId.description || '',
+            instructor: enrollment.courseId.instructorName || 'Instructor',
+            thumbnailUrl: enrollment.courseId.thumbnail,
+            category: enrollment.courseId.level,
+            duration: enrollment.courseId.duration,
             lessonsCount: 0, // This should be fetched from the course if available
-            progress: enrollment.progress || 0
+            progress: enrollment.progress
           }));
           
           setEnrolledCourses(formattedCourses);
-        } else {
-          setEnrolledCourses([]);
         }
         
         // Fetch dashboard stats
-        const statsResponse = await api.get('/users/student/dashboard-stats');
+        const statsResponse = await axios.get(`${API_BASE_URL}/users/student/dashboard-stats`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
         
         if (statsResponse.data.success) {
-          setStats(statsResponse.data.stats || {
-            enrolledCourses: 0,
-            completedCourses: 0,
-            certificatesEarned: 0,
-            averageProgress: 0,
-            totalLearningTime: 0,
-            lastAccessedCourse: null
-          });
+          setStats(statsResponse.data.stats);
         }
         
         // Fetch user certificates
-        const certificatesResponse = await api.get('/certificates');
+        const certificatesResponse = await axios.get(`${API_BASE_URL}/certificates`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
         
         if (certificatesResponse.data.success) {
           setCertificates(certificatesResponse.data.certificates || []);
         }
         
         // Also fetch some recommended courses
-        const recommendedResponse = await api.get('/courses?limit=6');
+        const recommendedResponse = await axios.get(`${API_BASE_URL}/courses?limit=6`);
         
-        // Make sure courses exists and is an array before mapping
-        if (recommendedResponse.data.success && 
-            recommendedResponse.data.courses && 
-            Array.isArray(recommendedResponse.data.courses)) {
-          
+        if (recommendedResponse.data.success && recommendedResponse.data.courses) {
           // Transform courses to match CourseProps interface
           const formattedRecommended = recommendedResponse.data.courses.map(course => ({
-            id: course._id || '',
-            title: course.title || 'Untitled Course',
+            id: course._id,
+            title: course.title,
             description: course.description || '',
             instructor: course.instructorName || 'Instructor',
-            thumbnailUrl: course.thumbnail || '/placeholder.jpg',
-            category: course.level || 'beginner',
-            duration: course.duration || '0h',
+            thumbnailUrl: course.thumbnail,
+            category: course.level,
+            duration: course.duration,
             lessonsCount: 0,
             isPopular: true
           }));
           
           setRecommendedCourses(formattedRecommended);
-        } else {
-          setRecommendedCourses([]);
         }
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
-        setEnrolledCourses([]);
-        setRecommendedCourses([]);
-        setCertificates([]);
-        // Toast error is now handled by API interceptor
+        toast.error('Failed to fetch dashboard data');
       } finally {
         setIsLoading(false);
       }

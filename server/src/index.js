@@ -35,7 +35,7 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 // Configure CORS for deployment
 const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
 app.use(cors({
-  origin: true, // Allow all origins in all environments for now
+  origin: [clientUrl, 'https://eduflow.onrender.com'],
   credentials: true
 }));
 
@@ -71,11 +71,10 @@ if (isProduction) {
     try {
       if (require('fs').existsSync(path.join(buildPath, 'index.html'))) {
         clientBuildPath = buildPath;
-        console.log(`Found valid client build at: ${buildPath}`);
         break;
       }
     } catch (err) {
-      console.log(`Path ${buildPath} not accessible: ${err.message}`);
+      console.log(`Path ${buildPath} not accessible`);
     }
   }
   
@@ -83,7 +82,6 @@ if (isProduction) {
     console.error('Could not find client build directory!');
     console.error('Searched paths:', possibleBuildPaths);
     clientBuildPath = path.join(__dirname, '../public'); // Fallback path
-    console.log(`Using fallback path: ${clientBuildPath}`);
   }
   
   console.log('Client build path:', clientBuildPath);
@@ -93,11 +91,7 @@ if (isProduction) {
   
   // Handle React routing, return all requests to React app
   app.get('*', (req, res, next) => {
-    // Log requested path for debugging
-    console.log(`Received request for: ${req.url}`);
-    
     if (req.url.startsWith('/api')) {
-      console.log('API request - passing to API routes');
       return next(); // Let API routes handle API requests
     }
     
@@ -105,41 +99,9 @@ if (isProduction) {
     console.log(`Attempting to serve: ${indexPath}`);
     
     if (require('fs').existsSync(indexPath)) {
-      console.log('Found index.html, sending file');
       res.sendFile(indexPath);
     } else {
-      console.error(`index.html not found at ${indexPath}`);
-      // Provide a fallback HTML response
-      res.send(`
-        <!DOCTYPE html>
-        <html lang="en">
-          <head>
-            <meta charset="UTF-8" />
-            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-            <title>EduFlow</title>
-            <style>
-              body { font-family: system-ui, sans-serif; padding: 2rem; max-width: 800px; margin: 0 auto; line-height: 1.6; }
-              h1 { color: #5d4d7a; }
-              .card { border: 1px solid #eaeaea; padding: 2rem; border-radius: 8px; margin: 2rem 0; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-              pre { background: #f8f8f8; padding: 1rem; border-radius: 4px; overflow-x: auto; }
-            </style>
-          </head>
-          <body>
-            <h1>EduFlow API Server</h1>
-            <div class="card">
-              <h2>API Status</h2>
-              <p>The API server is running successfully. You can access the API at <a href="/api">/api</a></p>
-              <p>However, the client build files are missing. This could be due to a build error.</p>
-            </div>
-            <div class="card">
-              <h2>Technical Information</h2>
-              <p>Attempted to serve index.html from: <pre>${indexPath}</pre></p>
-              <p>Environment: ${isProduction ? 'Production' : 'Development'}</p>
-              <p>Checked paths: <pre>${JSON.stringify(possibleBuildPaths, null, 2)}</pre></p>
-            </div>
-          </body>
-        </html>
-      `);
+      res.status(404).send('Client application not found. Please check build configuration.');
     }
   });
 } else {

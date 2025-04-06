@@ -10,11 +10,7 @@ export const API_BASE_URL = (() => {
   
   // Otherwise, determine based on hostname
   const hostname = window.location.hostname;
-  
-  // Local development - on localhost or on local IP (192.168.*)
-  if (hostname === 'localhost' || 
-      hostname === '127.0.0.1' || 
-      /^192\.168\.\d+\.\d+$/.test(hostname)) {
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
     return 'http://localhost:5000/api';
   }
   

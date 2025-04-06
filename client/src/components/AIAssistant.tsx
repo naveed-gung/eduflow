@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 import { Loader2, Maximize2, MessageSquare, Minimize2, Send, X, Sparkles, Bot, Settings, RefreshCw, Download, Share2 } from 'lucide-react';
 import { ScrollArea } from './ui/scroll-area';
 import { useAuth } from '@/context/AuthProvider';
+import axios from 'axios';
 import { toast } from 'sonner';
 import { useLocation } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -18,7 +19,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
-import api from '@/lib/api';
+
+// API base URL
+const API_BASE_URL = 'http://localhost:5000/api';
 
 // Message type definition
 interface Message {
@@ -199,8 +202,8 @@ export function AIAssistant() {
           throw new Error('Authentication token not found');
         }
         
-        response = await api.post(
-          '/ai/chat',
+        response = await axios.post(
+          `${API_BASE_URL}/ai/chat`,
           { 
             message: inputValue,
             userId: user.id,
@@ -292,7 +295,7 @@ export function AIAssistant() {
     if (user) {
       const token = localStorage.getItem('eduflow-token');
       if (token) {
-        api.delete('/ai/chat/history', {
+        axios.delete(`${API_BASE_URL}/ai/chat/history`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -326,8 +329,8 @@ export function AIAssistant() {
         responseLength
       };
       
-      const response = await api.put(
-        '/users/preferences',
+      const response = await axios.put(
+        `${API_BASE_URL}/users/preferences`,
         { 
           preferences: { 
             ai: aiPreferences 

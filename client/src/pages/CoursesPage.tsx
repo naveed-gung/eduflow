@@ -179,7 +179,7 @@ const CoursesPage = () => {
         
         {/* Course Cards */}
         {!isLoading && (
-        <CourseGrid 
+          <CourseGrid 
             courses={courses}
             searchable={false} // We're handling search at the page level
           />

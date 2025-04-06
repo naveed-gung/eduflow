@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,12 +7,12 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Clock, BookOpen, Award, CheckCircle, ExternalLink, Play, User, Users, Lock } from 'lucide-react';
-import { Progress } from '@/components/ui/progress';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Separator } from '@/components/ui/separator';
+import axios from 'axios';
 import { toast } from 'sonner';
 import { useAuth } from '@/context/AuthProvider';
-import api from '@/lib/api';
+
+// API base URL
+const API_BASE_URL = 'http://localhost:5000/api';
 
 interface Lesson {
   _id: string;
@@ -61,74 +61,37 @@ const CourseDetailPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isEnrolling, setIsEnrolling] = useState(false);
   const [isEnrolled, setIsEnrolled] = useState(false);
-  const [currentProgress, setCurrentProgress] = useState(0);
   
   useEffect(() => {
     const fetchCourse = async () => {
-      setIsLoading(true);
-      
       try {
-        // Fetch course details
-        const response = await api.get(`/courses/${id}`);
+        setIsLoading(true);
+        // Get the course details from the API
+        const response = await axios.get(`${API_BASE_URL}/courses/${id}`);
         
-        if (response.data) {
-          // Make sure the course has all required properties with defaults if missing
-          setCourse({
-            _id: response.data._id || id,
-            title: response.data.title || 'Untitled Course',
-            description: response.data.description || '',
-            thumbnail: response.data.thumbnail || '/placeholder.jpg',
-            instructor: response.data.instructor || { 
-              name: response.data.instructorName || 'Instructor' 
-            },
-            instructorName: response.data.instructorName || 'Instructor',
-            level: response.data.level || 'beginner',
-            duration: response.data.duration || '0h',
-            modules: response.data.modules || [],
-            learningPoints: response.data.learningPoints || [],
-            language: response.data.language || 'English',
-            studentsCount: response.data.studentsCount || 0,
-            status: response.data.status || 'active',
-            category: response.data.category || 'General',
-            rating: response.data.rating || 0,
-            price: response.data.price || 0,
-            ...response.data
-          });
-        } else {
-          // Handle empty or invalid response
-          toast.error('Failed to load course details - invalid data received');
-          navigate('/courses');
-          return;
-        }
-        
-        // Check if user is enrolled
-        if (user) {
-          try {
-          const userResponse = await api.get(`/users/profile`);
+        if (response.data.success) {
+          setCourse(response.data.course);
           
-            if (userResponse.data && userResponse.data.enrolledCourses) {
-          const enrolledCourses = userResponse.data.enrolledCourses || [];
-              const isAlreadyEnrolled = enrolledCourses.some(
-                course => course.courseId === id || course.courseId?._id === id
+          // Check if user is already enrolled
+          if (isAuthenticated && user) {
+            const token = localStorage.getItem('eduflow-token');
+            const userResponse = await axios.get(`${API_BASE_URL}/users/profile`, {
+              headers: { Authorization: `Bearer ${token}` }
+            });
+            
+            if (userResponse.data.success) {
+              const enrolledCourseIds = userResponse.data.user.enrolledCourses.map((c: any) => 
+                c.courseId._id || c.courseId
               );
-          setIsEnrolled(isAlreadyEnrolled);
-          
-          if (isAlreadyEnrolled) {
-                const userCourse = enrolledCourses.find(
-                  course => course.courseId === id || course.courseId?._id === id
-                );
-            if (userCourse) {
-                  setCurrentProgress(userCourse.progress || 0);
+              setIsEnrolled(enrolledCourseIds.includes(id));
             }
-              }
-            }
-          } catch (error) {
-            console.error('Error checking enrollment status:', error);
-            // Continue showing the course details even if we fail to check enrollment
           }
+        } else {
+          toast.error('Failed to load course details');
+          navigate('/courses');
         }
       } catch (error) {
-        console.error('Error fetching course:', error);
+        console.error('Error loading course:', error);
         toast.error('Failed to load course details');
         navigate('/courses');
       } finally {
@@ -141,32 +104,71 @@ const CourseDetailPage = () => {
   
   const handleEnrollCourse = async () => {
     if (!user) {
-      navigate('/signin', { state: { from: `/course-detail/${id}` } });
+      navigate('/signin');
       return;
     }
     
     try {
       setIsEnrolling(true);
       
-      const response = await api.post(`/courses/enroll/${id}`);
+      const token = localStorage.getItem('eduflow-token');
+      if (!token) {
+        throw new Error('Authentication token not found');
+      }
       
+      const response = await axios.post(`${API_BASE_URL}/courses/enroll/${id}`, {}, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      toast.success('Successfully enrolled in course!');
       setIsEnrolled(true);
-      toast.success('Successfully enrolled in the course!');
       
-      // Update progress
-      const completeCourseResponse = await api.post(
-        `/courses/complete/${id}`,
-        { progress: 0 }
-      );
+      // Redirect to student dashboard after enrollment
+      navigate('/dashboard/student');
       
-      // Update user profile to get updated enrolled courses
-      const updatedUserResponse = await api.get(`/users/profile`);
+      // Update the course status to completed after 2 minutes (for demo purposes)
+      if (process.env.NODE_ENV !== 'production') {
+        // Show a notification about upcoming completion (for demo)
+        toast.info('Demo: Course will be marked as completed in 2 minutes');
+        
+        setTimeout(async () => {
+          try {
+            const completeResponse = await axios.put(
+              `${API_BASE_URL}/courses/complete/${id}`, 
+              {}, 
+              {
+                headers: {
+                  'Authorization': `Bearer ${token}`
+                }
+              }
+            );
+            
+            if (completeResponse.data.success) {
+              // Show a success message
+              toast.success('You have completed the course and earned a certificate!');
+              
+              // Refresh user data in context if needed (optional)
+              const updatedUserResponse = await axios.get(`${API_BASE_URL}/users/profile`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+              });
+              
+              if (updatedUserResponse.data.success) {
+                // Update the user data in localStorage
+                localStorage.setItem('eduflow-user', JSON.stringify(updatedUserResponse.data.user));
+              }
+            }
+          } catch (error) {
+            console.error('Error completing course:', error);
+            toast.error('Failed to complete the course automatically');
+          }
+        }, 2 * 60 * 1000); // 2 minutes
+      }
       
-      // Update local progress state
-      setCurrentProgress(0);
     } catch (error) {
-      console.error('Error enrolling in course:', error);
-      toast.error('Failed to enroll in the course');
+      console.error('Enrollment error:', error);
+      toast.error('Failed to enroll in course');
     } finally {
       setIsEnrolling(false);
     }
@@ -290,24 +292,24 @@ const CourseDetailPage = () => {
               <CardHeader>
                 <CardTitle>Course Curriculum</CardTitle>
                 <CardDescription>
-                  {(course.modules || []).reduce((acc, module) => acc + (module.lessons?.length || 0), 0)} lessons • {course.duration || '0h'}
+                  {course.modules.reduce((acc, module) => acc + module.lessons.length, 0)} lessons • {course.duration}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {(course.modules || []).map((module, index) => (
-                  <div key={module._id || index} className="border rounded-lg">
+                {course.modules.map((module, index) => (
+                  <div key={module._id} className="border rounded-lg">
                     <div className="bg-muted/40 p-4 rounded-t-lg">
                       <h3 className="font-medium">
-                        Module {index + 1}: {module.title || 'Untitled Module'}
+                        Module {index + 1}: {module.title}
                       </h3>
                       <p className="text-sm text-muted-foreground mt-1">
-                        {(module.lessons || []).length} lessons
+                        {module.lessons.length} lessons
                       </p>
                     </div>
                     <div className="divide-y">
-                      {(module.lessons || []).map((lesson, lessonIndex) => (
+                      {module.lessons.map((lesson) => (
                         <div 
-                          key={lesson._id || lessonIndex} 
+                          key={lesson._id} 
                           className="p-4 flex items-center justify-between hover:bg-muted/30 transition-colors"
                         >
                           <div className="flex items-center gap-3">
@@ -315,9 +317,9 @@ const CourseDetailPage = () => {
                               <Play className="w-4 h-4 text-primary" />
                             </div>
                             <div>
-                              <p className="font-medium">{lesson.title || 'Untitled Lesson'}</p>
+                              <p className="font-medium">{lesson.title}</p>
                               <p className="text-xs text-muted-foreground">
-                                {lesson.duration || 0} mins • {lesson.type || 'video'}
+                                {lesson.duration} mins • {lesson.type}
                               </p>
                             </div>
                           </div>
@@ -349,14 +351,12 @@ const CourseDetailPage = () => {
               </CardHeader>
               <CardContent>
                 <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {(course.learningPoints || []).length > 0 ? (
-                    (course.learningPoints || []).map((point, index) => (
-                      <li key={index} className="flex items-start gap-2">
-                        <CheckCircle className="w-5 h-5 text-primary mt-0.5" />
-                        <span>{point}</span>
-                      </li>
-                    ))
-                  ) : (
+                  {course.learningPoints?.map((point, index) => (
+                    <li key={index} className="flex items-start gap-2">
+                      <CheckCircle className="w-5 h-5 text-primary mt-0.5" />
+                      <span>{point}</span>
+                    </li>
+                  )) || (
                     <li className="text-muted-foreground">No learning points specified for this course.</li>
                   )}
                 </ul>
@@ -373,12 +373,12 @@ const CourseDetailPage = () => {
                 <div className="flex flex-col sm:flex-row gap-6 items-start">
                   <Avatar className="w-24 h-24">
                     <AvatarImage src={course.instructor?.photoURL} />
-                    <AvatarFallback className="text-2xl">{(course.instructorName || 'Instructor').charAt(0)}</AvatarFallback>
+                    <AvatarFallback className="text-2xl">{course.instructorName.charAt(0)}</AvatarFallback>
                   </Avatar>
                   <div>
-                    <h3 className="text-xl font-semibold mb-2">{course.instructorName || 'Instructor'}</h3>
+                    <h3 className="text-xl font-semibold mb-2">{course.instructorName}</h3>
                     <p className="text-muted-foreground mb-4">
-                      Professional instructor with expertise in {course.category || 'this field'}
+                      Professional instructor with expertise in {course.category}
                     </p>
                     <Button variant="outline" size="sm">
                       <User className="mr-2 h-4 w-4" /> View Profile

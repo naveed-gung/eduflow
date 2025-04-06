@@ -13,7 +13,6 @@
     "build": "cd client && npm run build",
     "postbuild": "mkdir -p server/public && cp -r client/dist/* server/public/ || echo 'Note: Client build copy failed, will use direct path'",
     "render-build": "bash ./render-build.sh",
-    "render-fix": "node render-fix.js",
     "start": "cd server && npm start"
   },
   "author": "",
