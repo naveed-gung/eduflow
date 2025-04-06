@@ -214,16 +214,6 @@ eduflow/
 └── package.json          # Root package.json for project-wide scripts
 ```
 
-## 📄 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 🙏 Acknowledgments
-
-- [shadcn/ui](https://ui.shadcn.com/) for the beautiful component library
-- [Lucide Icons](https://lucide.dev/) for the elegant icon set
-- [Tailwind CSS](https://tailwindcss.com/) for efficient styling
-- [Firebase](https://firebase.google.com/) for authentication services
-- [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) for database hosting
 
 
