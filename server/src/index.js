@@ -109,7 +109,37 @@ if (isProduction) {
       res.sendFile(indexPath);
     } else {
       console.error(`index.html not found at ${indexPath}`);
-      res.status(404).send('Client application not found. Please check build configuration.');
+      // Provide a fallback HTML response
+      res.send(`
+        <!DOCTYPE html>
+        <html lang="en">
+          <head>
+            <meta charset="UTF-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+            <title>EduFlow</title>
+            <style>
+              body { font-family: system-ui, sans-serif; padding: 2rem; max-width: 800px; margin: 0 auto; line-height: 1.6; }
+              h1 { color: #5d4d7a; }
+              .card { border: 1px solid #eaeaea; padding: 2rem; border-radius: 8px; margin: 2rem 0; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+              pre { background: #f8f8f8; padding: 1rem; border-radius: 4px; overflow-x: auto; }
+            </style>
+          </head>
+          <body>
+            <h1>EduFlow API Server</h1>
+            <div class="card">
+              <h2>API Status</h2>
+              <p>The API server is running successfully. You can access the API at <a href="/api">/api</a></p>
+              <p>However, the client build files are missing. This could be due to a build error.</p>
+            </div>
+            <div class="card">
+              <h2>Technical Information</h2>
+              <p>Attempted to serve index.html from: <pre>${indexPath}</pre></p>
+              <p>Environment: ${isProduction ? 'Production' : 'Development'}</p>
+              <p>Checked paths: <pre>${JSON.stringify(possibleBuildPaths, null, 2)}</pre></p>
+            </div>
+          </body>
+        </html>
+      `);
     }
   });
 } else {
