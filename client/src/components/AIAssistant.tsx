@@ -81,6 +81,9 @@ const getContextualPrompts = (pathname: string) => {
   }
 };
 
+// Component styles
+const drawerWidth = 'clamp(300px, 25vw, 400px)';
+
 export function AIAssistant() {
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
@@ -345,151 +348,122 @@ export function AIAssistant() {
   
   return (
     <>
-      {/* AI Assistant icon that follows mouse partially */}
-      <div
+      {/* Main chatbot button */}
+      <Button
         className={cn(
-          "fixed z-50 transition-all duration-300 ease-out",
-          isOpen 
-            ? "bottom-0 right-0 m-4" 
-            : `bottom-8 right-8`
+          'fixed bottom-6 right-6 z-40 h-12 w-12 rounded-full shadow-lg',
+          isOpen ? 'bg-primary/90 hover:bg-primary/80' : 'bg-primary hover:bg-primary/90'
         )}
-        style={
-          !isOpen ? { 
-            transform: `translate(${(mousePosition.x - window.innerWidth + 100) * 0.1}px, ${(mousePosition.y - window.innerHeight + 100) * 0.1}px)` 
-          } : {}
-        }
+        onClick={() => setIsOpen(!isOpen)}
+        size="icon"
+        aria-label={isOpen ? 'Close AI assistant' : 'Open AI assistant'}
       >
-        {/* Chat button */}
-        {!isOpen && (
-        <Button
-          onClick={() => setIsOpen(true)}
-            className="h-16 w-16 rounded-full shadow-lg group hover:scale-105 transition-all duration-200"
-        >
-            <Bot className="h-7 w-7 group-hover:hidden" />
-            <Sparkles className="h-7 w-7 hidden group-hover:block" />
-        </Button>
+        {isOpen ? (
+          <X className="h-5 w-5" />
+        ) : (
+          <MessageSquare className="h-5 w-5" />
         )}
-        
-        {/* Chat window */}
-        {isOpen && (
-          <Card className={cn(
-            "flex flex-col shadow-lg transition-all duration-200 bg-background border-primary/20",
-            isMinimized 
-              ? "w-72 h-14 rounded-full" 
-              : "w-96 rounded-lg overflow-hidden",
-              "h-[600px] max-h-[80vh]"
-          )}>
-            {/* Chat header */}
-            <div className="flex items-center justify-between bg-primary text-primary-foreground px-4 py-3">
-          <div className="flex items-center gap-2">
-                <Sparkles className="h-5 w-5" />
-                <h3 className="font-medium">EduFlow Assistant</h3>
-            </div>
-              <div className="flex gap-1">
-                {!isMinimized && (
+      </Button>
+      
+      {/* AI chatbot panel */}
+      {isOpen && (
+        <div
+          className={cn(
+            'fixed z-30 bg-card border-l border-border shadow-xl transition-all duration-300 ease-in-out',
+            isMinimized ? 'w-auto h-auto bottom-20 right-6 rounded-md' : 'bottom-0 right-0 top-0 flex flex-col',
+            isMinimized ? '' : `w-full sm:w-[${drawerWidth}]`
+          )}
+        >
+          {isMinimized ? (
+            // Minimized view
+            <Button
+              variant="ghost"
+              className="p-2"
+              onClick={() => setIsMinimized(false)}
+              aria-label="Expand AI assistant"
+            >
+              <Maximize2 className="h-4 w-4 mr-2" />
+              <span className="text-xs">Expand</span>
+            </Button>
+          ) : (
+            // Full view
+            <>
+              <header className="border-b p-3 flex items-center justify-between">
+                <div className="flex items-center">
+                  <Button variant="ghost" size="icon" className="mr-2" onClick={() => setIsMinimized(true)}>
+                    <Minimize2 className="h-4 w-4" />
+                  </Button>
+                  <div className="flex items-center">
+                    <Bot className="h-5 w-5 mr-2 text-primary" />
+                    <span className="font-medium text-sm">EduFlow AI Assistant</span>
+                  </div>
+                </div>
+                <div className="flex items-center">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-8 w-8 text-primary-foreground hover:bg-primary/80"
-                      >
+                      <Button variant="ghost" size="icon" className="h-8 w-8">
                         <Settings className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem onClick={() => setActiveTab('settings')}>
-                        Preferences
+                        <Settings className="h-4 w-4 mr-2" />
+                        <span>AI Settings</span>
                       </DropdownMenuItem>
+                      <DropdownMenuSeparator />
                       <DropdownMenuItem onClick={handleClearChat}>
-                        Clear conversation
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={handleExportChat}>
-                        <Download className="mr-2 h-4 w-4" />
-                        Export chat
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <Share2 className="mr-2 h-4 w-4" />
-                        Share feedback
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={() => window.open('https://youtu.be/dQw4w9WgXcQ', '_blank')}>
-                        About EduBot
+                        <RefreshCw className="h-4 w-4 mr-2" />
+                        <span>Clear Chat</span>
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
-                )}
-                {isMinimized ? (
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="h-8 w-8 text-primary-foreground hover:bg-primary/80"
-                    onClick={() => setIsMinimized(false)}
-                  >
-                    <Maximize2 className="h-4 w-4" />
+                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsOpen(false)}>
+                    <X className="h-4 w-4" />
                   </Button>
-                ) : (
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="h-8 w-8 text-primary-foreground hover:bg-primary/80"
-                    onClick={() => setIsMinimized(true)}
-                  >
-                    <Minimize2 className="h-4 w-4" />
-                  </Button>
-                )}
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="h-8 w-8 text-primary-foreground hover:bg-primary/80"
-                  onClick={() => setIsOpen(false)}
-                >
-                  <X className="h-4 w-4" />
-          </Button>
-              </div>
-        </div>
-        
-            {/* Chat content */}
-            {!isMinimized && (
+                </div>
+              </header>
+              
               <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-                <TabsContent value="chat" className="flex-1 flex flex-col data-[state=active]:flex data-[state=inactive]:hidden m-0 p-0">
-                  {/* Messages area */}
-                  <ScrollArea className="flex-1 p-4">
+                <TabsList className="px-3 pt-3 grid grid-cols-2 w-full">
+                  <TabsTrigger value="chat" className="text-xs sm:text-sm">Chat</TabsTrigger>
+                  <TabsTrigger value="settings" className="text-xs sm:text-sm">Settings</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="chat" className="flex-1 flex flex-col p-0 m-0 data-[state=active]:flex data-[state=active]:flex-col">
+                  {/* Chat messages */}
+                  <ScrollArea className="flex-1 p-3">
                     <div className="space-y-4">
                       {messages.map((message) => (
-            <div 
-              key={message.id} 
-              className={cn(
-                            "flex max-w-[80%] rounded-lg p-3",
+                        <div
+                          key={message.id}
+                          className={cn(
+                            "flex flex-col max-w-[85%] p-3 rounded-lg text-sm",
                             message.sender === 'user'
                               ? "ml-auto bg-primary text-primary-foreground"
-                              : "bg-muted"
+                              : "mr-auto bg-muted text-foreground"
                           )}
                         >
-                          {message.content}
-            </div>
-          ))}
-                      {isLoading && (
-                        <div className="flex bg-muted max-w-[80%] rounded-lg p-3">
-                          <Loader2 className="h-5 w-5 animate-spin" />
+                          <div className="whitespace-pre-wrap">{message.content}</div>
+                          <span className="text-xs opacity-70 mt-1 text-right">
+                            {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </span>
                         </div>
-                      )}
-          <div ref={messagesEndRef} />
-        </div>
+                      ))}
+                    </div>
+                    <div ref={messagesEndRef} />
                   </ScrollArea>
                   
-                  {/* Suggested questions */}
-                  {messages.length <= 2 && (
-                    <div className="px-4 pb-2">
+                  {/* Suggested prompts */}
+                  {messages.length <= 2 && !isLoading && (
+                    <div className="p-3 border-t">
                       <p className="text-xs text-muted-foreground mb-2">Suggested questions:</p>
                       <div className="flex flex-wrap gap-2">
                         {contextualPrompts.slice(0, 3).map((prompt, index) => (
-                          <Button 
-                            key={index} 
-                            variant="outline" 
-                            size="sm" 
-                            className="text-xs h-auto py-1"
+                          <Button
+                            key={index}
+                            variant="outline"
+                            size="sm"
+                            className="text-xs py-1 h-auto whitespace-normal text-left"
                             onClick={() => handleSuggestionClick(prompt)}
                           >
                             {prompt}
@@ -500,121 +474,115 @@ export function AIAssistant() {
                   )}
                   
                   {/* Input area */}
-                  <div className="p-4 pt-2 border-t">
-          <div className="flex gap-2">
+                  <div className="p-3 border-t flex items-end gap-2">
+                    <div className="flex-1">
                       <Input
                         ref={inputRef}
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
+                        placeholder="Type your message..."
+                        value={inputValue}
+                        onChange={(e) => setInputValue(e.target.value)}
                         onKeyDown={handleKeyDown}
-                        placeholder="Ask me anything..."
-                        className="flex-1"
                         disabled={isLoading}
+                        className="min-h-10 py-2 resize-none text-sm"
                       />
-                      <Button 
-                        onClick={handleSendMessage} 
-                        size="icon" 
-                        disabled={isLoading || !inputValue.trim()}
-                      >
-                        {isLoading ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-              <Send className="h-4 w-4" />
-                        )}
-                      </Button>
                     </div>
-                    {messages.length > 1 && (
-                      <div className="flex justify-between mt-2">
-                        <div className="text-xs text-muted-foreground">
-                          {responseLength === 'concise' ? 'Concise' : responseLength === 'detailed' ? 'Detailed' : 'Balanced'} responses
-                        </div>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="h-auto py-0 px-2 text-xs"
-                          onClick={handleClearChat}
-                        >
-                          Clear chat
-                        </Button>
-                      </div>
-                    )}
+                    <Button
+                      size="icon"
+                      disabled={isLoading || !inputValue.trim()}
+                      onClick={handleSendMessage}
+                      className="flex-shrink-0"
+                    >
+                      {isLoading ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Send className="h-4 w-4" />
+                      )}
+                    </Button>
                   </div>
                 </TabsContent>
                 
-                <TabsContent value="settings" className="flex-1 overflow-auto data-[state=active]:flex data-[state=inactive]:hidden flex-col m-0 p-4">
-                  <h3 className="text-lg font-medium mb-4">AI Assistant Settings</h3>
-                  
-                  <div className="space-y-6">
-                    <div className="space-y-3">
-                      <Label className="text-base">Voice output</Label>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-muted-foreground">Enable spoken responses</span>
-                        <Switch 
-                          checked={voiceEnabled} 
-                          onCheckedChange={setVoiceEnabled} 
-                        />
+                <TabsContent 
+                  value="settings" 
+                  className="py-0 px-3 sm:px-6 data-[state=active]:flex data-[state=active]:flex-col"
+                >
+                  <ScrollArea className="flex-1">
+                    <div className="py-4 space-y-6">
+                      <h3 className="text-base font-medium">AI Assistant Settings</h3>
+                      
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div className="space-y-0.5">
+                            <Label>Voice Responses</Label>
+                            <p className="text-xs text-muted-foreground">
+                              Enable voice output for AI responses
+                            </p>
+                          </div>
+                          <Switch
+                            checked={voiceEnabled}
+                            onCheckedChange={setVoiceEnabled}
+                          />
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label>AI Appearance</Label>
+                          <div className="grid grid-cols-3 gap-2">
+                            {['modern', 'classic', 'minimal'].map((theme) => (
+                              <Button
+                                key={theme}
+                                variant={aiTheme === theme ? "default" : "outline"}
+                                size="sm"
+                                className="text-xs capitalize"
+                                onClick={() => setAiTheme(theme)}
+                              >
+                                {theme}
+                              </Button>
+                            ))}
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label>Response Length</Label>
+                          <div className="grid grid-cols-3 gap-2">
+                            {['concise', 'balanced', 'detailed'].map((length) => (
+                              <Button
+                                key={length}
+                                variant={responseLength === length ? "default" : "outline"}
+                                size="sm"
+                                className="text-xs capitalize"
+                                onClick={() => setResponseLength(length)}
+                              >
+                                {length}
+                              </Button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="pt-4 flex flex-col sm:flex-row gap-2 justify-end">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => setActiveTab('chat')}
+                          className="order-2 sm:order-1"
+                        >
+                          Cancel
+                        </Button>
+                        <Button 
+                          onClick={handleSaveAISettings}
+                          size="sm"
+                          className="order-1 sm:order-2"
+                        >
+                          Save Settings
+                        </Button>
                       </div>
                     </div>
-                    
-                    <div className="space-y-3">
-                      <Label className="text-base">Response length</Label>
-                      <div className="grid grid-cols-3 gap-2">
-                        {['concise', 'balanced', 'detailed'].map((length) => (
-                          <Button 
-                            key={length}
-                            variant={responseLength === length ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => setResponseLength(length)}
-                            className="capitalize"
-                          >
-                            {length}
-                          </Button>
-                        ))}
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        {responseLength === 'concise' 
-                          ? 'Brief, to-the-point answers' 
-                          : responseLength === 'detailed' 
-                            ? 'Comprehensive, in-depth explanations' 
-                            : 'Balanced between brevity and detail'}
-                      </p>
-                    </div>
-                    
-                    <div className="space-y-3">
-                      <Label className="text-base">Assistant theme</Label>
-                      <div className="grid grid-cols-3 gap-2">
-                        {['modern', 'classic', 'playful'].map((theme) => (
-                          <Button 
-                            key={theme}
-                            variant={aiTheme === theme ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => setAiTheme(theme)}
-                            className="capitalize"
-                          >
-                            {theme}
-                          </Button>
-                        ))}
-                      </div>
-                    </div>
-                    
-                    <div className="pt-4 flex justify-between">
-                      <Button 
-                        variant="outline" 
-                        onClick={() => setActiveTab('chat')}
-                      >
-                        Cancel
-                      </Button>
-                      <Button onClick={handleSaveAISettings}>
-                        Save changes
-            </Button>
-          </div>
-                  </div>
+                  </ScrollArea>
                 </TabsContent>
               </Tabs>
-            )}
-          </Card>
-        )}
-      </div>
+            </>
+          )}
+        </div>
+      )}
       
       {/* Tooltip when hovering over elements */}
       {isOpen && hoverElement && !isMinimized && (

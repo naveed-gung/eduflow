@@ -179,21 +179,21 @@ const CourseDetailPage = () => {
   return (
     <div className="min-h-screen pb-16">
       {/* Hero Section */}
-      <div className="bg-gradient-to-r from-primary/10 to-secondary/10 dark:from-primary/5 dark:to-secondary/5 py-12">
+      <div className="bg-gradient-to-r from-primary/10 to-secondary/10 dark:from-primary/5 dark:to-secondary/5 py-8 sm:py-12">
         <div className="container">
-          <div className="flex flex-col md:flex-row gap-8 items-start">
+          <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-start">
             <div className="flex-1">
-              <Badge variant="outline" className="mb-4">
+              <Badge variant="outline" className="mb-3 sm:mb-4">
                 {course.level}
               </Badge>
               
-              <h1 className="text-3xl md:text-4xl font-bold mb-4">{course.title}</h1>
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4">{course.title}</h1>
               
-              <p className="text-muted-foreground mb-6">
+              <p className="text-sm sm:text-base text-muted-foreground mb-4 sm:mb-6">
                 {course.description}
               </p>
               
-              <div className="flex items-center gap-4 mb-6">
+              <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
                 <Avatar>
                   <AvatarImage src={course.instructor?.photoURL} />
                   <AvatarFallback>{course.instructorName.charAt(0)}</AvatarFallback>
@@ -204,66 +204,97 @@ const CourseDetailPage = () => {
                 </div>
               </div>
               
-              <div className="flex flex-wrap gap-4 mb-6">
-                <div className="flex items-center gap-1.5">
-                  <Clock className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-sm">{course.duration}</span>
+              <div className="flex flex-wrap gap-2 sm:gap-4 mb-6">
+                <div className="flex items-center gap-1 text-xs sm:text-sm text-muted-foreground">
+                  <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span>{course.duration}</span>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <BookOpen className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-sm">
-                    {course.modules.reduce((acc, module) => acc + module.lessons.length, 0)} lessons
-                  </span>
+                <div className="flex items-center gap-1 text-xs sm:text-sm text-muted-foreground">
+                  <BookOpen className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span>{course.modules.reduce((acc, module) => acc + module.lessons.length, 0)} lessons</span>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <Users className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-sm">{course.studentsCount} students</span>
+                <div className="flex items-center gap-1 text-xs sm:text-sm text-muted-foreground">
+                  <Users className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span>{course.studentsCount} students</span>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <Award className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-sm">{course.level}</span>
-                </div>
+                {course.level && (
+                  <div className="flex items-center gap-1 text-xs sm:text-sm text-muted-foreground">
+                    <Award className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <span>{course.level}</span>
+                  </div>
+                )}
               </div>
               
-              {isEnrolled ? (
-                <Button className="w-full sm:w-auto">
-                  <Play className="mr-2 h-4 w-4" /> Continue Learning
-                </Button>
-              ) : (
-                <Button 
-                  className="w-full sm:w-auto"
-                  onClick={handleEnrollCourse}
-                  disabled={isEnrolling}
-                >
-                  {isEnrolling ? (
-                    <>
-                      <Clock className="mr-2 h-4 w-4 animate-spin" /> Enrolling...
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle className="mr-2 h-4 w-4" /> Enroll Now
-                      {course.price > 0 ? ` - $${course.price.toFixed(2)}` : ' - Free'}
-                    </>
-                  )}
-                </Button>
-              )}
+              <div className="mt-4 sm:mt-6">
+                {isEnrolled ? (
+                  <Button className="w-full sm:w-auto" disabled>
+                    <CheckCircle className="mr-2 h-4 w-4" />
+                    Enrolled
+                  </Button>
+                ) : (
+                  <Button 
+                    onClick={handleEnrollCourse} 
+                    disabled={isEnrolling}
+                    className="w-full sm:w-auto"
+                  >
+                    {isEnrolling ? (
+                      <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <PlayCircle className="mr-2 h-4 w-4" />
+                    )}
+                    {isEnrolling ? 'Enrolling...' : `Enroll Now${course.price > 0 ? ` - $${course.price}` : ' - Free'}`}
+                  </Button>
+                )}
+              </div>
             </div>
             
-            <div className="w-full md:w-2/5 lg:w-1/3">
-              <div className="rounded-xl overflow-hidden shadow-lg">
-                <img
-                  src={course.thumbnail}
-                  alt={course.title}
-                  className="w-full aspect-video object-cover"
-                />
-              </div>
+            <div className="w-full md:w-2/5 lg:w-1/3 mt-4 md:mt-0">
+              <Card className="overflow-hidden">
+                <div className="aspect-video w-full relative">
+                  <img 
+                    src={course.thumbnail} 
+                    alt={course.title}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+                    <Play className="h-12 w-12 text-white opacity-80" />
+                  </div>
+                </div>
+                <CardContent className="p-4 sm:p-6">
+                  <div className="space-y-3 sm:space-y-4">
+                    <div className="flex justify-between items-center">
+                      <div className="font-semibold">
+                        {course.price > 0 ? `$${course.price}` : 'Free'}
+                      </div>
+                      
+                      <Badge variant={course.price > 0 ? "outline" : "default"}>
+                        {course.price > 0 ? 'Premium' : 'Free'}
+                      </Badge>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4 text-primary flex-shrink-0" />
+                        <span className="text-sm">{course.duration} of content</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4 text-primary flex-shrink-0" />
+                        <span className="text-sm">Certificate of completion</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4 text-primary flex-shrink-0" />
+                        <span className="text-sm">Access on all devices</span>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </div>
         </div>
       </div>
       
-      {/* Course Content */}
-      <div className="container mt-12">
+      <div className="container mt-8">
         <Tabs defaultValue="content" className="w-full">
           <TabsList className="w-full grid grid-cols-3">
             <TabsTrigger value="content">Course Content</TabsTrigger>
@@ -282,35 +313,43 @@ const CourseDetailPage = () => {
               <CardContent className="space-y-4">
                 {course.modules.map((module, index) => (
                   <div key={module._id} className="border rounded-lg">
-                    <div className="bg-muted/40 p-4 rounded-t-lg">
-                      <h3 className="font-medium">
+                    <div className="bg-muted/40 p-3 sm:p-4 rounded-t-lg">
+                      <h3 className="font-medium text-sm sm:text-base">
                         Module {index + 1}: {module.title}
                       </h3>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {module.lessons.length} lessons
-                      </p>
+                      {module.description && (
+                        <p className="text-xs sm:text-sm text-muted-foreground mt-1">{module.description}</p>
+                      )}
                     </div>
                     <div className="divide-y">
-                      {module.lessons.map((lesson) => (
+                      {module.lessons.map((lesson, lessonIndex) => (
                         <div 
                           key={lesson._id} 
-                          className="p-4 flex items-center justify-between hover:bg-muted/30 transition-colors"
+                          className="p-3 sm:p-4 flex items-center justify-between hover:bg-muted/20 transition-colors"
                         >
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                              <Play className="w-4 h-4 text-primary" />
+                          <div className="flex items-center gap-3 flex-1 min-w-0">
+                            <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                              <span className="text-xs font-medium text-primary">{lessonIndex + 1}</span>
                             </div>
-                            <div>
-                              <p className="font-medium">{lesson.title}</p>
-                              <p className="text-xs text-muted-foreground">
-                                {lesson.duration} mins • {lesson.type}
-                              </p>
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-medium text-sm sm:text-base truncate">{lesson.title}</h4>
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className="text-xs text-muted-foreground capitalize">{lesson.type}</span>
+                                <span className="text-xs text-muted-foreground flex items-center">
+                                  <Clock className="mr-1 h-3 w-3" />
+                                  {lesson.duration} min
+                                </span>
+                              </div>
                             </div>
                           </div>
-                          {!isEnrolled && (
-                            <Badge variant="outline">
-                              <Lock className="w-3 h-3 mr-1" /> Preview
-                            </Badge>
+                          
+                          {isEnrolled ? (
+                            <Button variant="ghost" size="sm" className="ml-2">
+                              <Play className="h-4 w-4" />
+                              <span className="sr-only sm:not-sr-only sm:ml-2">Play</span>
+                            </Button>
+                          ) : (
+                            <Lock className="h-4 w-4 text-muted-foreground" />
                           )}
                         </div>
                       ))}
@@ -318,32 +357,37 @@ const CourseDetailPage = () => {
                   </div>
                 ))}
               </CardContent>
-              <CardFooter>
-                {!isEnrolled && (
-                  <Button onClick={handleEnrollCourse}>
-                    <CheckCircle className="mr-2 h-4 w-4" /> Enroll Now
-                  </Button>
-                )}
-              </CardFooter>
             </Card>
           </TabsContent>
           
           <TabsContent value="overview" className="mt-6">
             <Card>
               <CardHeader>
-                <CardTitle>What You'll Learn</CardTitle>
+                <CardTitle>Course Overview</CardTitle>
               </CardHeader>
-              <CardContent>
-                <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {course.learningPoints?.map((point, index) => (
-                    <li key={index} className="flex items-start gap-2">
-                      <CheckCircle className="w-5 h-5 text-primary mt-0.5" />
-                      <span>{point}</span>
-                    </li>
-                  )) || (
-                    <li className="text-muted-foreground">No learning points specified for this course.</li>
-                  )}
-                </ul>
+              <CardContent className="space-y-6">
+                <div>
+                  <h3 className="text-lg font-medium mb-3">What You'll Learn</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
+                    {course.learningPoints && course.learningPoints.length > 0 ? (
+                      course.learningPoints.map((point, index) => (
+                        <div key={index} className="flex items-start gap-2">
+                          <CheckCircle className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                          <span className="text-sm">{point}</span>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-muted-foreground text-sm">No learning points provided for this course.</p>
+                    )}
+                  </div>
+                </div>
+                
+                <div>
+                  <h3 className="text-lg font-medium mb-3">Description</h3>
+                  <div className="prose prose-sm max-w-none dark:prose-invert">
+                    <p className="text-sm sm:text-base">{course.description}</p>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -351,22 +395,25 @@ const CourseDetailPage = () => {
           <TabsContent value="instructor" className="mt-6">
             <Card>
               <CardHeader>
-                <CardTitle>Meet Your Instructor</CardTitle>
+                <CardTitle>About the Instructor</CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="flex flex-col sm:flex-row gap-6 items-start">
-                  <Avatar className="w-24 h-24">
+              <CardContent className="space-y-6">
+                <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 items-start">
+                  <Avatar className="w-20 h-20">
                     <AvatarImage src={course.instructor?.photoURL} />
-                    <AvatarFallback className="text-2xl">{course.instructorName.charAt(0)}</AvatarFallback>
+                    <AvatarFallback className="text-lg">{course.instructorName.charAt(0)}</AvatarFallback>
                   </Avatar>
-                  <div>
+                  
+                  <div className="flex-1">
                     <h3 className="text-xl font-semibold mb-2">{course.instructorName}</h3>
-                    <p className="text-muted-foreground mb-4">
-                      Professional instructor with expertise in {course.category}
+                    <p className="text-muted-foreground mb-4 text-sm sm:text-base">
+                      Experienced instructor with expertise in {course.category}
                     </p>
-                    <Button variant="outline" size="sm">
-                      <User className="mr-2 h-4 w-4" /> View Profile
-                    </Button>
+                    
+                    <p className="text-sm">
+                      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed euismod, nunc vel 
+                      tincidunt lacinia, nunc nisl aliquam nisl, eget aliquam nisl nunc vel nisl.
+                    </p>
                   </div>
                 </div>
               </CardContent>

@@ -58,7 +58,7 @@ export function CourseCard({ course, loading = false, variant = 'default', class
       className={cn(
         "course-card card-glow relative overflow-hidden rounded-xl border border-border bg-card shadow-sm transition-all duration-200",
         "hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-1",
-        variant === 'horizontal' ? "flex gap-4" : "flex flex-col",
+        variant === 'horizontal' ? "flex flex-col sm:flex-row gap-4" : "flex flex-col",
         "block",
         className
       )}
@@ -66,7 +66,7 @@ export function CourseCard({ course, loading = false, variant = 'default', class
     >
       <div className={cn(
         "relative overflow-hidden",
-        variant === 'horizontal' ? "w-1/3" : "w-full h-48"
+        variant === 'horizontal' ? "w-full sm:w-1/3 h-40 sm:h-auto" : "w-full h-40 sm:h-48"
       )}>
         <img 
           src={course.thumbnailUrl} 
@@ -84,40 +84,40 @@ export function CourseCard({ course, loading = false, variant = 'default', class
           </Badge>
         )}
         <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-          <PlayCircle className="w-12 h-12 text-primary" />
+          <PlayCircle className="w-10 h-10 sm:w-12 sm:h-12 text-primary" />
         </div>
       </div>
       
-      <div className="p-4 flex-1 flex flex-col">
+      <div className="p-3 sm:p-4 flex-1 flex flex-col">
         <div className="flex-1">
-          <div className="flex items-center gap-2 mb-1.5">
+          <div className="flex flex-wrap items-center gap-1 sm:gap-2 mb-1.5">
             <Badge variant="outline" className="text-xs px-2 py-0">
               {course.category}
             </Badge>
           </div>
           
-          <h3 className="text-lg font-semibold line-clamp-2 mb-2">
+          <h3 className="text-base sm:text-lg font-semibold line-clamp-2 mb-1 sm:mb-2">
             {course.title}
           </h3>
           
-          <p className="text-muted-foreground text-sm mb-3 line-clamp-2">
+          <p className="text-muted-foreground text-xs sm:text-sm mb-2 sm:mb-3 line-clamp-2">
             {course.description}
           </p>
         </div>
         
-        <div className="flex items-center text-xs text-muted-foreground gap-3 mt-auto">
+        <div className="flex flex-wrap items-center text-xs text-muted-foreground gap-2 sm:gap-3 mt-auto">
           <div className="flex items-center gap-1">
-            <Clock className="w-3.5 h-3.5" />
+            <Clock className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
             <span>{course.duration}</span>
           </div>
           <div className="flex items-center gap-1">
-            <BookOpen className="w-3.5 h-3.5" />
+            <BookOpen className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
             <span>{course.lessonsCount} lessons</span>
           </div>
         </div>
         
         {course.progress !== undefined && (
-          <div className="mt-3">
+          <div className="mt-2 sm:mt-3">
             <div className="flex justify-between text-xs mb-1">
               <span>Progress</span>
               <span>{course.progress}%</span>

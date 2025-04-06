@@ -14,7 +14,9 @@ import {
   Upload, 
   Users,
   Award,
-  Trash2
+  Trash2,
+  MoreHorizontal,
+  Eye
 } from 'lucide-react';
 import { 
   Table,
@@ -39,6 +41,7 @@ import axios from 'axios';
 import { toast } from 'sonner';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import api from '@/lib/api';  // Import the API client
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 // Student interface
 interface Student {
@@ -180,11 +183,7 @@ const AdminDashboard = () => {
       const token = localStorage.getItem('eduflow-token');
       if (!token) return;
 
-      const response = await axios.delete(`${API_BASE_URL}/users/${studentId}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
+      const response = await api.delete(`/users/${studentId}`);
 
       if (response.data.success) {
         toast.success('Student removed successfully');
@@ -212,28 +211,26 @@ const AdminDashboard = () => {
   return (
     <div className="min-h-screen pb-16">
       {/* Dashboard Header */}
-      <div className="bg-muted/30 py-12">
+      <div className="bg-muted/30 py-8 sm:py-12">
         <div className="container">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-4xl font-bold mb-2">
-                Admin Dashboard
-              </h1>
+              <h1 className="text-3xl sm:text-4xl font-bold mb-2">Admin Dashboard</h1>
               <p className="text-muted-foreground">
-                Manage courses, students, and monitor platform performance
+                Manage your courses, students, and platform
               </p>
             </div>
-            <div className="flex gap-3 flex-wrap">
-              <Button onClick={() => setIsFormOpen(true)}>
-                <Plus className="mr-2 h-4 w-4" />
+            <div className="flex gap-2 sm:gap-3 flex-wrap">
+              <Button onClick={() => setIsFormOpen(true)} size="sm" className="h-9 text-xs sm:text-sm">
+                <Plus className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                 New Course
               </Button>
-              <Button variant="outline" onClick={() => navigate('/admin/certificates')}>
-                <Award className="mr-2 h-4 w-4" />
+              <Button variant="outline" onClick={() => navigate('/admin/certificates')} size="sm" className="h-9 text-xs sm:text-sm">
+                <Award className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                 Certificates
               </Button>
-              <Button variant="outline">
-                <Download className="mr-2 h-4 w-4" />
+              <Button variant="outline" size="sm" className="h-9 text-xs sm:text-sm">
+                <Download className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                 Reports
               </Button>
             </div>
@@ -241,25 +238,25 @@ const AdminDashboard = () => {
         </div>
       </div>
       
-      <div className="container mt-8">
+      <div className="container mt-6 sm:mt-8">
         {/* Stats Overview */}
         <DashboardStats role="admin" />
         
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mt-6">
           {/* Course Management */}
           <Card className="lg:col-span-2">
-            <CardHeader className="flex flex-row items-center justify-between">
+            <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-2 sm:space-y-0">
               <div>
                 <CardTitle>Course Management</CardTitle>
                 <CardDescription>Manage and track your courses</CardDescription>
               </div>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm">
-                  <Upload className="mr-2 h-4 w-4" />
+              <div className="flex gap-2 w-full sm:w-auto">
+                <Button variant="outline" size="sm" className="text-xs">
+                  <Upload className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                   Import
                 </Button>
-                <Button size="sm" onClick={() => setIsFormOpen(true)}>
-                  <Plus className="mr-2 h-4 w-4" />
+                <Button size="sm" onClick={() => setIsFormOpen(true)} className="text-xs flex-1 sm:flex-initial">
+                  <Plus className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                   Add Course
                 </Button>
               </div>
@@ -275,7 +272,7 @@ const AdminDashboard = () => {
                 />
               </div>
               
-              <div className="rounded-md border">
+              <div className="rounded-md border overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -289,152 +286,138 @@ const AdminDashboard = () => {
                   </TableHeader>
                   <TableBody>
                     {isLoading ? (
-                      <TableRow>
-                        <TableCell colSpan={6} className="text-center py-8">
-                          <div className="flex items-center justify-center">
-                            <svg className="animate-spin h-6 w-6 text-primary mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                            </svg>
-                            <span>Loading courses...</span>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ) : filteredCourses.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={6} className="text-center py-8">
-                          {searchQuery.trim() 
-                            ? "No courses found matching your search criteria" 
-                            : "No courses available. Create your first course to get started."}
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      filteredCourses.slice(0, 5).map((course) => (
-                      <TableRow key={course.id}>
-                        <TableCell className="font-medium">
-                          <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded overflow-hidden bg-muted">
-                              <img 
-                                src={course.thumbnailUrl} 
-                                alt={course.title}
-                                className="w-full h-full object-cover"
-                              />
-                            </div>
-                            <span className="truncate max-w-[150px]">{course.title}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="hidden md:table-cell">{course.category}</TableCell>
-                        <TableCell className="hidden md:table-cell">
-                          <span className={`px-2 py-1 rounded-full text-xs ${
-                            course.isPublished 
-                              ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-500' 
-                              : 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-500'
-                          }`}>
-                            {course.isPublished ? 'Published' : 'Draft'}
-                          </span>
-                        </TableCell>
-                        <TableCell className="text-right">{course.students}</TableCell>
-                          <TableCell className="text-right">${course.revenue || 0}</TableCell>
-                        <TableCell className="text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon">
-                                <span className="sr-only">Open menu</span>
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  strokeWidth="2"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  className="h-4 w-4"
-                                >
-                                  <circle cx="12" cy="12" r="1" />
-                                  <circle cx="12" cy="5" r="1" />
-                                  <circle cx="12" cy="19" r="1" />
-                                </svg>
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                <DropdownMenuItem onClick={() => handleEditCourse(course)}>
-                                <FileEdit className="mr-2 h-4 w-4" />
-                                Edit
-                              </DropdownMenuItem>
+                      // Loading skeleton rows
+                      [1, 2, 3].map((_, index) => (
+                        <TableRow key={`skeleton-${index}`}>
+                          <TableCell className="font-medium py-3">
+                            <div className="h-4 bg-muted rounded w-4/5 animate-pulse"></div>
+                          </TableCell>
+                          <TableCell className="hidden md:table-cell">
+                            <div className="h-4 bg-muted rounded w-1/2 animate-pulse"></div>
+                          </TableCell>
+                          <TableCell className="hidden md:table-cell">
+                            <div className="h-4 bg-muted rounded w-1/3 animate-pulse"></div>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="h-4 bg-muted rounded w-1/3 ml-auto animate-pulse"></div>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="h-4 bg-muted rounded w-1/3 ml-auto animate-pulse"></div>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="h-8 bg-muted rounded w-8 ml-auto animate-pulse"></div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : filteredCourses.length > 0 ? (
+                      filteredCourses.map((course) => (
+                        <TableRow key={course.id}>
+                          <TableCell className="font-medium py-3 truncate max-w-[120px] md:max-w-none">
+                            {course.title}
+                          </TableCell>
+                          <TableCell className="hidden md:table-cell">{course.category}</TableCell>
+                          <TableCell className="hidden md:table-cell">
+                            {course.isPublished ? (
+                              <span className="inline-flex bg-green-500/10 text-green-500 text-xs px-2 py-1 rounded-full">
+                                Published
+                              </span>
+                            ) : (
+                              <span className="inline-flex bg-amber-500/10 text-amber-500 text-xs px-2 py-1 rounded-full">
+                                Draft
+                              </span>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-right">{course.students}</TableCell>
+                          <TableCell className="text-right">${course.revenue.toFixed(2)}</TableCell>
+                          <TableCell className="text-right">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
                                 <DropdownMenuItem onClick={() => handleViewCourse(course)}>
-                                <ArrowUpRight className="mr-2 h-4 w-4" />
-                                View
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
+                                  <Eye className="mr-2 h-4 w-4" />
+                                  View Course
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleEditCourse(course)}>
+                                  <FileEdit className="mr-2 h-4 w-4" />
+                                  Edit Course
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
                                 <DropdownMenuItem 
                                   className="text-destructive"
                                   onClick={() => handleDeleteCourse(course)}
                                 >
                                   <Trash2 className="mr-2 h-4 w-4" />
-                                Delete
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                                  Delete
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center py-6 text-muted-foreground">
+                          No courses found. Create your first course to get started!
                         </TableCell>
                       </TableRow>
-                      ))
                     )}
                   </TableBody>
                 </Table>
-              </div>
-              
-              <div className="flex justify-end mt-4">
-                <Button variant="outline" size="sm" onClick={() => navigate('/admin/courses')}>
-                  View All Courses
-                </Button>
               </div>
             </CardContent>
           </Card>
           
           {/* Recent Students */}
           <Card>
-            <CardHeader>
-              <CardTitle>Recent Students</CardTitle>
-              <CardDescription>New students who joined recently</CardDescription>
+            <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-2 sm:space-y-0">
+              <div>
+                <CardTitle>Recent Students</CardTitle>
+                <CardDescription>New students that joined recently</CardDescription>
+              </div>
+              <div className="w-full sm:w-auto">
+                <Input 
+                  placeholder="Search students..." 
+                  className="w-full"
+                />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="space-y-6">
+              <div className="space-y-4">
                 {recentStudents.length > 0 ? (
                   recentStudents.map((student) => (
-                    <div key={student.id} className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center font-medium text-lg">
-                          {student.name[0]}
-                        </div>
+                    <div 
+                      key={student.id} 
+                      className="flex items-center justify-between py-2 border-b border-border/50 last:border-0"
+                    >
+                      <div className="flex items-center gap-3">
+                        <Avatar>
+                          <AvatarFallback>
+                            {student.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
                         <div>
-                          <p className="font-medium">{student.name}</p>
-                          <p className="text-sm text-muted-foreground">{student.email}</p>
+                          <p className="font-medium text-sm">{student.name}</p>
+                          <p className="text-xs text-muted-foreground">{student.email}</p>
+                          <p className="text-xs mt-1">
+                            <span className="text-muted-foreground">Joined: </span>
+                            {student.date}
+                          </p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <div className="text-right mr-2">
-                          <p className="text-sm font-medium">{student.courses} courses</p>
-                          <p className="text-xs text-muted-foreground">{student.date}</p>
+                      <div className="flex flex-col sm:flex-row gap-2 items-end sm:items-center">
+                        <div className="text-right text-xs mr-2 hidden sm:block">
+                          <p><span className="font-medium">{student.courses}</span> courses</p>
+                          <p><span className="font-medium">{student.progress}%</span> avg. progress</p>
                         </div>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="icon" className="h-8 w-8">
-                              <span className="sr-only">Student actions</span>
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                className="h-4 w-4"
-                              >
-                                <circle cx="12" cy="12" r="1" />
-                                <circle cx="12" cy="5" r="1" />
-                                <circle cx="12" cy="19" r="1" />
-                              </svg>
+                              <MoreHorizontal className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
@@ -476,7 +459,7 @@ const AdminDashboard = () => {
           </Card>
         </div>
       </div>
-
+      
       {/* Course Form Dialog */}
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
         <DialogContent className="max-w-4xl">

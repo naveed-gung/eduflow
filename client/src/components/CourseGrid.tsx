@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { CourseCard, CourseProps } from '@/components/CourseCard';
 import { Input } from '@/components/ui/input';
@@ -62,7 +61,9 @@ export function CourseGrid({
         </div>
       )}
       
-      <div className={`grid grid-cols-1 ${variant === 'compact' ? 'sm:grid-cols-2 lg:grid-cols-4 gap-4' : 'md:grid-cols-2 lg:grid-cols-3 gap-6'}`}>
+      <div className={`grid grid-cols-1 ${variant === 'compact' 
+        ? 'sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4' 
+        : 'sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6'}`}>
         {loading ? (
           // Skeleton loading
           Array.from({ length: 6 }).map((_, index) => (
@@ -79,12 +80,12 @@ export function CourseGrid({
           ))
         ) : (
           // No courses found state
-          <div className="col-span-full py-20 text-center">
-            <div className="mx-auto mb-4 h-20 w-20 rounded-full bg-muted/30 flex items-center justify-center">
-              <Search className="h-10 w-10 text-muted-foreground" />
+          <div className="col-span-full py-12 sm:py-20 text-center px-4">
+            <div className="mx-auto mb-4 h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-muted/30 flex items-center justify-center">
+              <Search className="h-8 w-8 sm:h-10 sm:w-10 text-muted-foreground" />
             </div>
-            <h3 className="text-xl font-semibold mb-2">No courses found</h3>
-            <p className="text-muted-foreground">
+            <h3 className="text-lg sm:text-xl font-semibold mb-2">No courses found</h3>
+            <p className="text-muted-foreground text-sm sm:text-base">
               Try adjusting your search or filters to find what you're looking for.
             </p>
           </div>
