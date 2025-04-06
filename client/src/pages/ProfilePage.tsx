@@ -10,15 +10,12 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { AlertCircle, BookOpen, Camera, GraduationCap, LoaderCircle, User } from 'lucide-react';
 import { toast } from 'sonner';
-import axios from 'axios';
 import { fileToBase64, validateImageFile } from '@/lib/utils';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { 
   Calendar, 
-  Certificate, 
-  Clock, 
   Edit, 
   Globe, 
   Mail, 
@@ -27,8 +24,7 @@ import {
   Shield, 
   Award
 } from 'lucide-react';
-
-const API_BASE_URL = 'http://localhost:5000/api';
+import api from '@/lib/api';
 
 const ProfilePage = () => {
   const { user } = useAuth();
@@ -80,16 +76,8 @@ const ProfilePage = () => {
     
     try {
       setIsLoading(true);
-      const token = localStorage.getItem('eduflow-token');
-      if (!token) {
-        throw new Error('Authentication token not found');
-      }
       
-      const response = await axios.get(`${API_BASE_URL}/users/student/dashboard-stats`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
+      const response = await api.get('/users/student/dashboard-stats');
       
       if (response.data.success) {
         setStatistics({
@@ -100,7 +88,7 @@ const ProfilePage = () => {
       }
     } catch (error) {
       console.error('Error fetching user stats:', error);
-      toast.error('Failed to load user statistics');
+      // Error toast is handled by API interceptor
     } finally {
       setIsLoading(false);
     }
@@ -109,11 +97,6 @@ const ProfilePage = () => {
   const handleSaveProfile = async () => {
     setIsLoading(true);
     try {
-      const token = localStorage.getItem('eduflow-token');
-      if (!token) {
-        throw new Error('Authentication token not found');
-      }
-
       const profileData = {
         name,
         email,
@@ -123,11 +106,7 @@ const ProfilePage = () => {
         avatarUrl: avatarPreview
       };
 
-      const response = await axios.put(`${API_BASE_URL}/users/profile`, profileData, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
+      const response = await api.put('/users/profile', profileData);
 
       // Update local user data
       if (response.data.user) {
@@ -138,7 +117,7 @@ const ProfilePage = () => {
       toast.success("Profile updated successfully");
     } catch (error) {
       console.error('Error updating profile:', error);
-      toast.error("Failed to update profile");
+      // Error toast is handled by API interceptor
     } finally {
       setIsLoading(false);
     }
@@ -173,20 +152,7 @@ const ProfilePage = () => {
       setAvatarPreview(base64Image);
       
       // For immediate feedback, save the image right away
-      const token = localStorage.getItem('eduflow-token');
-      if (!token) {
-        throw new Error('Authentication token not found');
-      }
-      
-      const response = await axios.put(
-        `${API_BASE_URL}/users/avatar`, 
-        { avatar: base64Image },
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        }
-      );
+      const response = await api.put('/users/avatar', { avatar: base64Image });
       
       // Update local user data
       if (response.data.user) {
@@ -197,7 +163,7 @@ const ProfilePage = () => {
       toast.success("Profile picture updated successfully");
     } catch (error) {
       console.error('Error uploading avatar:', error);
-      toast.error("Failed to update profile picture");
+      // Error toast is handled by API interceptor
     } finally {
       setIsLoading(false);
       // Clear the input value to allow uploading the same file again
@@ -213,16 +179,7 @@ const ProfilePage = () => {
     setUploadError(null);
     
     try {
-      const token = localStorage.getItem('eduflow-token');
-      if (!token) {
-        throw new Error('Authentication token not found');
-      }
-      
-      const response = await axios.delete(`${API_BASE_URL}/users/avatar`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
+      const response = await api.delete('/users/avatar');
       
       // Update local UI
       setAvatarPreview(null);
@@ -236,7 +193,7 @@ const ProfilePage = () => {
       toast.success("Profile picture removed successfully");
     } catch (error) {
       console.error('Error removing avatar:', error);
-      toast.error("Failed to remove profile picture");
+      // Error toast is handled by API interceptor
     } finally {
       setIsLoading(false);
     }
