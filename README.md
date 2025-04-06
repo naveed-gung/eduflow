@@ -214,6 +214,7 @@ eduflow/
 └── package.json          # Root package.json for project-wide scripts
 ```
 
+<<<<<<< HEAD
 ## 📄 License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
@@ -268,5 +269,8 @@ If you're facing issues with the Render deployment:
 - [Tailwind CSS](https://tailwindcss.com/) for efficient styling
 - [Firebase](https://firebase.google.com/) for authentication services
 - [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) for database hosting
+=======
+
+>>>>>>> 4ec86e1d20aa076c0de5eef702820d6a17f38c87
 
 
