@@ -4,12 +4,6 @@
   <img src="client/public/favicon.svg" alt="EduFlow Logo" width="180"/>
   <h3>✨ Learn Anywhere, Anytime ✨</h3>
   
-  ![Node.js](https://img.shields.io/badge/Node.js-v14+-green)
-  ![React](https://img.shields.io/badge/React-v18-blue)
-  ![MongoDB](https://img.shields.io/badge/MongoDB-v5-green)
-  ![License](https://img.shields.io/badge/License-MIT-yellow)
-</div>
-
 ## 📋 Overview 
 
 EduFlow is a comprehensive full-stack e-learning platform built with the MERN stack (MongoDB, Express, React, Node.js). It delivers a modern learning experience with an intuitive interface, interactive courses, and powerful admin tools. 🌟
