@@ -16,12 +16,9 @@ import {
 } from 'recharts';
 import { Clock, Gauge, GraduationCap, TrendingUp, Trophy } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import axios from 'axios';
 import { toast } from 'sonner';
 import { useAuth } from '@/context/AuthProvider';
-
-// API base URL
-const API_BASE_URL = 'http://localhost:5000/api';
+import api from '@/lib/api';
 
 interface DashboardStatsProps {
   role: 'admin' | 'student';
@@ -81,59 +78,25 @@ export function DashboardStats({ role, className }: DashboardStatsProps) {
   
   useEffect(() => {
     const fetchStats = async () => {
+      setIsLoading(true);
       try {
-        setIsLoading(true);
-        const token = localStorage.getItem('eduflow-token');
-        if (!token) return;
-        
         if (role === 'student') {
-          // Fetch student stats
-          const response = await axios.get(`${API_BASE_URL}/users/dashboard-stats`, {
-            headers: {
-              'Authorization': `Bearer ${token}`
-            }
-          });
-          
-          if (response.data.success) {
-            // Map API data to our state
-            const stats = response.data.stats;
-            
-            setStudentStats({
-              enrolledCourses: stats.enrolledCount || 0,
-              completedCourses: stats.completedCount || 0,
-              certificatesEarned: stats.certificatesCount || 0,
-              averageScore: stats.averageScore || 0,
-              weeklyProgress: stats.weeklyLearningActivity || studentStats.weeklyProgress,
-              courseProgress: stats.courseProgress || [],
-              totalLearningTime: stats.totalLearningTime || 0
-            });
-          }
-        } else {
-          // Fetch admin stats
-          const response = await axios.get(`${API_BASE_URL}/users/admin/dashboard-stats`, {
-            headers: {
-              'Authorization': `Bearer ${token}`
-            }
-          });
-          
-          if (response.data.success) {
-            // Map API data to our state
-            const stats = response.data.stats;
-            
-            setAdminStats({
-              totalStudents: stats.totalStudents || 0,
-              activeCourses: stats.activeCourses || 0,
-              completionRate: stats.avgCompletionRate || 0,
-              totalRevenue: stats.totalRevenue || 0,
-              coursePerformance: stats.coursePerformance || [],
-              categoryDistribution: stats.categoryDistribution || []
-            });
-          }
+          const response = await api.get(`/users/dashboard-stats`);
+          setStudentStats(response.data);
+        } else if (role === 'admin') {
+          const response = await api.get(`/users/admin/dashboard-stats`);
+          setAdminStats(response.data);
         }
       } catch (error) {
-        console.error('Error fetching dashboard stats:', error);
-        // If the API fails, we'll use default/fallback values
-        // No need to show an error toast as this is passive data fetching
+        console.error(`Error fetching ${role} dashboard stats:`, error);
+        toast.error('Could not load dashboard statistics');
+        
+        // Set demo data as fallback
+        if (role === 'student') {
+          setStudentStats(getDemoStudentStats());
+        } else {
+          setAdminStats(getDemoAdminStats());
+        }
       } finally {
         setIsLoading(false);
       }

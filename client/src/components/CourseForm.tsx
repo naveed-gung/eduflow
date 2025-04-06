@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { 
   Card, 
   CardContent, 
@@ -29,33 +30,45 @@ import {
   Image as ImageIcon, 
   Loader2, 
   UploadCloud, 
-  X 
+  X,
+  Image,
+  ImagePlus,
+  Trash2,
+  HelpCircle,
+  PlusCircle,
+  MinusCircle
 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { fileToBase64, validateImageFile } from '@/lib/utils';
-import axios from 'axios';
 import { toast } from 'sonner';
-
-// API base URL
-const API_BASE_URL = 'http://localhost:5000/api';
+import { useAuth } from '@/context/AuthProvider';
+import api from '@/lib/api';
 
 interface CourseFormProps {
   onSuccess?: () => void;
   onCancel?: () => void;
+  isEdit?: boolean;
+  courseData?: any;
 }
 
-export function CourseForm({ onSuccess, onCancel }: CourseFormProps) {
+export function CourseForm({ onSuccess, onCancel, isEdit, courseData }: CourseFormProps) {
   // Course data states
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [category, setCategory] = useState('');
-  const [price, setPrice] = useState('');
-  const [duration, setDuration] = useState('');
-  const [level, setLevel] = useState('beginner');
-  const [isPublic, setIsPublic] = useState(true);
+  const [title, setTitle] = useState(courseData?.title || '');
+  const [description, setDescription] = useState(courseData?.description || '');
+  const [shortDescription, setShortDescription] = useState(courseData?.shortDescription || '');
+  const [category, setCategory] = useState(courseData?.category || '');
+  const [price, setPrice] = useState(courseData?.price?.toString() || '');
+  const [duration, setDuration] = useState(courseData?.duration || '');
+  const [level, setLevel] = useState(courseData?.level || 'beginner');
+  const [isPublic, setIsPublic] = useState(courseData?.published || true);
+  const [published, setPublished] = useState(courseData?.published || true);
+  const [featured, setFeatured] = useState(courseData?.featured || false);
+  const [language, setLanguage] = useState(courseData?.language || 'English');
+  const [modulesData, setModulesData] = useState(courseData?.modules || []);
+  const [learningPoints, setLearningPoints] = useState(courseData?.learningPoints || []);
   
   // Image upload states
-  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
+  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(courseData?.thumbnail || null);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -113,69 +126,47 @@ export function CourseForm({ onSuccess, onCancel }: CourseFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!title.trim()) {
-      toast.error('Course title is required');
-      return;
-    }
-    
-    if (!thumbnailPreview) {
-      toast.error('Course thumbnail is required');
-      return;
-    }
-    
     try {
       setIsSubmitting(true);
       
-      const token = localStorage.getItem('eduflow-token');
-      if (!token) {
-        throw new Error('Authentication token not found');
+      // Validate required fields
+      if (!title || !description || !category || !level || !price) {
+        toast.error('Please fill in all required fields');
+        return;
       }
       
-      // Format level to have first letter uppercase to match server validation
-      const formattedLevel = level.charAt(0).toUpperCase() + level.slice(1);
-      
+      // Create course data object
       const courseData = {
         title,
         description,
-        thumbnail: thumbnailPreview,
-        level: formattedLevel,
-        duration,
+        shortDescription,
         category,
-        price: price ? parseFloat(price) : 0,
-        status: isPublic ? 'Published' : 'Draft',
-        learningPoints: []
+        level,
+        price: parseFloat(price),
+        thumbnail: thumbnailPreview || 'https://placehold.co/600x400?text=Course+Thumbnail',
+        language,
+        modules: modulesData,
+        learningPoints: learningPoints.filter(point => point.trim() !== ''),
+        published: published,
+        featured: featured
       };
       
-      const response = await axios.post(`${API_BASE_URL}/courses`, courseData, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
+      // If editing, update the course, otherwise create a new one
+      if (isEdit && courseData._id) {
+        const response = await api.put(`/courses/${courseData._id}`, courseData);
+        toast.success('Course updated successfully!');
+      } else {
+        const response = await api.post(`/courses`, courseData);
+        toast.success('Course created successfully!');
+      }
       
-      toast.success('Course created successfully');
-      
-      // Clear form
-      setTitle('');
-      setDescription('');
-      setCategory('');
-      setPrice('');
-      setDuration('');
-      setLevel('beginner');
-      setThumbnailPreview(null);
-      
-      // Call onSuccess callback if provided
+      // Call the success callback
       if (onSuccess) {
         onSuccess();
       }
     } catch (error) {
-      console.error('Error creating course:', error);
-      if (axios.isAxiosError(error) && error.response) {
-        // Show specific error message if available
-        const errorMsg = error.response.data.message || error.response.data.errors?.[0]?.msg || 'Failed to create course';
-        toast.error(errorMsg);
-      } else {
-        toast.error('Failed to create course');
-      }
+      console.error('Error saving course:', error);
+      toast.error('Failed to save course');
     } finally {
       setIsSubmitting(false);
     }
@@ -211,12 +202,23 @@ export function CourseForm({ onSuccess, onCancel }: CourseFormProps) {
               
               <div className="space-y-2">
                 <Label htmlFor="description">Description</Label>
-                <textarea 
+                <Textarea 
                   id="description" 
                   className="w-full min-h-[120px] rounded-md border border-input bg-background px-3 py-2 text-sm"
                   placeholder="Provide a detailed description of your course"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="shortDescription">Short Description</Label>
+                <Textarea 
+                  id="shortDescription" 
+                  className="w-full min-h-[120px] rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  placeholder="Provide a short description of your course"
+                  value={shortDescription}
+                  onChange={(e) => setShortDescription(e.target.value)}
                 />
               </div>
               

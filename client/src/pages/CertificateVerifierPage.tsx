@@ -4,13 +4,11 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Award, CheckCircle, Search, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
-import axios from 'axios';
-import { PageHeader } from '@/components/PageHeader';
 import { useSearchParams } from 'react-router-dom';
+import { PageHeader } from '@/components/PageHeader';
+import api from '@/lib/api';
 
-// API base URL
-const API_BASE_URL = 'http://localhost:5000/api';
-
+// Interface for verification result
 interface VerificationResult {
   success: boolean;
   message: string;
@@ -44,8 +42,8 @@ const CertificateVerifierPage = () => {
   // API call to verify certificate
   const verifyWithApi = async (id: string) => {
     try {
-      const response = await axios.get(
-        `${API_BASE_URL}/certificates/verify-by-number/${encodeURIComponent(id)}`
+      const response = await api.get(
+        `/certificates/verify-by-number/${encodeURIComponent(id)}`
       );
       
       setResult(response.data);

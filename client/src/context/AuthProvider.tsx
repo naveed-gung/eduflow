@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import axios from 'axios';
 import { 
   signInWithPopup, 
   signInWithCredential, 
@@ -8,7 +7,7 @@ import {
   signOut as firebaseSignOut 
 } from 'firebase/auth';
 import { auth, googleProvider } from '@/lib/firebase';
-import api, { API_BASE_URL } from '@/lib/api'; // Import both api instance and API_BASE_URL
+import api from '@/lib/api'; // Import only the API client
 
 // Define user roles
 export type UserRole = 'admin' | 'student';
@@ -64,8 +63,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
           }
           
-          // Set default axios auth header
-          axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+          // No need to set axios defaults as our API client handles this
           
           // You can validate the token with the server if needed
           // For now, we'll just set the user from local storage
@@ -89,7 +87,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (email: string, password: string, rememberMe: boolean = false) => {
     setIsLoading(true);
     try {
-      const response = await axios.post(`${API_BASE_URL}/auth/login`, {
+      const response = await api.post('/auth/login', {
         email,
         password,
         rememberMe
@@ -109,9 +107,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         localStorage.setItem('eduflow-token-expiry', expirationDate.toISOString());
       }
       
-      // Set default axios auth header for future requests
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      
       setUser(userData);
       
       toast({
@@ -122,8 +117,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error('Login error:', error);
       let errorMessage = 'Invalid credentials';
       
-      if (axios.isAxiosError(error) && error.response) {
-        errorMessage = error.response.data.message || errorMessage;
+      if (error.response) {
+        errorMessage = error.response.data?.message || errorMessage;
       }
       
       toast({
@@ -155,7 +150,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const idToken = await result.user.getIdToken();
       
       // Send the ID token to our backend
-      const response = await axios.post(`${API_BASE_URL}/auth/google`, {
+      const response = await api.post('/auth/google', {
         idToken
       });
       
@@ -164,9 +159,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Save token and user data
       localStorage.setItem('eduflow-token', token);
       localStorage.setItem('eduflow-user', JSON.stringify(userData));
-      
-      // Set default axios auth header
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       
       setUser(userData);
       
@@ -178,8 +170,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error('Google sign-in error:', error);
       let errorMessage = 'Failed to sign in with Google';
       
-      if (axios.isAxiosError(error) && error.response) {
-        errorMessage = error.response.data.message || errorMessage;
+      if (error.response) {
+        errorMessage = error.response.data?.message || errorMessage;
       }
       
       toast({
@@ -205,9 +197,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.removeItem('eduflow-user');
       localStorage.removeItem('eduflow-token-expiry');
       
-      // Remove auth header
-      delete axios.defaults.headers.common['Authorization'];
-      
       setUser(null);
       
       toast({
@@ -231,7 +220,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const register = async (name: string, email: string, password: string) => {
     setIsLoading(true);
     try {
-      const response = await axios.post(`${API_BASE_URL}/auth/register`, {
+      const response = await api.post('/auth/register', {
         name,
         email,
         password
@@ -243,9 +232,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem('eduflow-token', token);
       localStorage.setItem('eduflow-user', JSON.stringify(userData));
       
-      // Set default axios auth header
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      
       setUser(userData);
       
       toast({
@@ -256,8 +242,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error('Registration error:', error);
       let errorMessage = 'Could not create account';
       
-      if (axios.isAxiosError(error) && error.response) {
-        errorMessage = error.response.data.message || errorMessage;
+      if (error.response) {
+        errorMessage = error.response.data?.message || errorMessage;
       }
       
       toast({

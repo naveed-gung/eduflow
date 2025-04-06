@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthProvider';
-import axios from 'axios';
 import { toast } from 'sonner';
 import { 
   Table, 
@@ -38,9 +37,7 @@ import {
 import { Award, MoreHorizontal, Search, Eye } from 'lucide-react';
 import { CertificateViewer } from '@/components/CertificateViewer';
 import { PageHeader } from '@/components/PageHeader';
-
-// API base URL
-const API_BASE_URL = 'http://localhost:5000/api';
+import api from '@/lib/api';
 
 interface CertificateType {
   _id: string;
@@ -72,34 +69,17 @@ const AdminCertificatesPage = () => {
   // Fetch certificates
   useEffect(() => {
     const fetchCertificates = async () => {
+      setIsLoading(true);
       try {
-        setIsLoading(true);
-        const token = localStorage.getItem('eduflow-token');
-        
-        if (!token) {
-          toast.error('Authentication token missing');
-          return;
-        }
-        
         const params = new URLSearchParams({
           page: currentPage.toString(),
-          limit: '10',
-        });
+          search: searchQuery
+        }).toString();
         
-        if (searchQuery) {
-          params.append('search', searchQuery);
-        }
+        const response = await api.get(`/certificates/admin/all?${params}`);
         
-        const response = await axios.get(`${API_BASE_URL}/certificates/admin/all?${params}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-        
-        if (response.data.success) {
-          setCertificates(response.data.certificates);
-          setTotalPages(response.data.totalPages);
-        }
+        setCertificates(response.data.certificates);
+        setTotalPages(Math.ceil(response.data.total / 10));
       } catch (error) {
         console.error('Error fetching certificates:', error);
         toast.error('Failed to load certificates');

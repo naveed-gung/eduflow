@@ -8,9 +8,7 @@ import { useAuth } from '@/context/AuthProvider';
 import { toast } from 'sonner';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Slider } from '@/components/ui/slider';
-import axios from 'axios';
-
-const API_BASE_URL = 'http://localhost:5000/api';
+import api from '@/lib/api';
 
 const SettingsPage = () => {
   const { user, setUser } = useAuth();
@@ -51,177 +49,138 @@ const SettingsPage = () => {
   }, [user]);
 
   const handleSaveAppearance = async () => {
-    setIsLoading(true);
+    if (!user) return;
+    
     try {
-      const token = localStorage.getItem('eduflow-token');
-      if (!token) {
-        throw new Error('Authentication token not found');
-      }
-
-      const updatedPreferences = {
-        showAIAssistant,
-        accentColor: selectedAccent
-      };
-
-      const response = await axios.put(
-        `${API_BASE_URL}/users/preferences`,
-        { preferences: updatedPreferences },
+      setIsLoading('appearance');
+      
+      const response = await api.put(
+        `/users/preferences`,
+        {
+          preferences: {
+            darkMode: isDarkMode,
+            theme: theme
+          }
+        },
         {
           headers: {
-            'Authorization': `Bearer ${token}`
+            Authorization: `Bearer ${localStorage.getItem('eduflow-token')}`
           }
         }
       );
-
-      if (response.data.success) {
-        // Update local user state
-        if (response.data.user) {
-          localStorage.setItem('eduflow-user', JSON.stringify(response.data.user));
-          setUser(response.data.user);
-        }
-        toast.success("Appearance settings saved");
-      }
+      
+      // Update local user state with new preferences
+      toast.success('Appearance settings saved!');
     } catch (error) {
       console.error('Error saving appearance settings:', error);
-      toast.error("Failed to save appearance settings");
+      toast.error('Failed to save appearance settings');
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleSaveNotifications = async () => {
-    setIsLoading(true);
+    if (!user) return;
+    
     try {
-      const token = localStorage.getItem('eduflow-token');
-      if (!token) {
-        throw new Error('Authentication token not found');
-      }
-
-      const response = await axios.put(
-        `${API_BASE_URL}/users/preferences`,
-        { preferences: { notifications } },
+      setIsLoading('notifications');
+      
+      const response = await api.put(
+        `/users/preferences`,
         {
-          headers: {
-            'Authorization': `Bearer ${token}`
+          preferences: {
+            emailNotifications: emailNotifications,
+            pushNotifications: pushNotifications,
+            marketingEmails: marketingEmails
           }
         }
       );
-
-      if (response.data.success) {
-        if (response.data.user) {
-          localStorage.setItem('eduflow-user', JSON.stringify(response.data.user));
-          setUser(response.data.user);
-        }
-        toast.success("Notification settings saved");
-      }
+      
+      // Update user preferences
+      toast.success('Notification settings saved!');
     } catch (error) {
       console.error('Error saving notification settings:', error);
-      toast.error("Failed to save notification settings");
+      toast.error('Failed to save notification settings');
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleSaveAccessibility = async () => {
-    setIsLoading(true);
+    if (!user) return;
+    
     try {
-      const token = localStorage.getItem('eduflow-token');
-      if (!token) {
-        throw new Error('Authentication token not found');
-      }
-
-      const accessibilityPreferences = {
-        textSize: textSize[0],
-        animationSpeed: animationSpeed[0],
-        reducedMotion,
-        highContrast
-      };
-
-      const response = await axios.put(
-        `${API_BASE_URL}/users/preferences`,
-        { preferences: { accessibility: accessibilityPreferences } },
+      setIsLoading('accessibility');
+      
+      const response = await api.put(
+        `/users/preferences`,
         {
-          headers: {
-            'Authorization': `Bearer ${token}`
+          preferences: {
+            reducedMotion: reducedMotion,
+            largerText: largerText,
+            highContrast: highContrast,
+            language: language
           }
         }
       );
-
-      if (response.data.success) {
-        if (response.data.user) {
-          localStorage.setItem('eduflow-user', JSON.stringify(response.data.user));
-          setUser(response.data.user);
-        }
-        toast.success("Accessibility settings saved");
-      }
+      
+      // Update user preferences
+      toast.success('Accessibility settings saved!');
     } catch (error) {
       console.error('Error saving accessibility settings:', error);
-      toast.error("Failed to save accessibility settings");
+      toast.error('Failed to save accessibility settings');
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleSaveAdminSettings = async () => {
-    setIsLoading(true);
+    if (!user || user.role !== 'admin') return;
+    
     try {
-      const token = localStorage.getItem('eduflow-token');
-      if (!token) {
-        throw new Error('Authentication token not found');
-      }
-
-      const adminSettings = {
-        maintenanceMode,
-        allowRegistration,
-        apiAccess,
-        emailVerification
-      };
-
-      const response = await axios.put(
-        `${API_BASE_URL}/admin/settings`,
-        adminSettings,
+      setIsLoading('admin');
+      
+      const response = await api.put(
+        `/admin/settings`,
         {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
+          enableUserRegistration,
+          maintenanceMode,
+          systemAnnouncement,
+          debugMode
         }
       );
-
-      toast.success("Admin settings saved");
+      
+      // Update admin settings
+      toast.success('Admin settings saved!');
     } catch (error) {
       console.error('Error saving admin settings:', error);
-      toast.error("Failed to save admin settings");
+      toast.error('Failed to save admin settings');
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleSavePlatformCustomization = async () => {
-    setIsLoading(true);
+    if (!user || user.role !== 'admin') return;
+    
     try {
-      const token = localStorage.getItem('eduflow-token');
-      if (!token) {
-        throw new Error('Authentication token not found');
-      }
-
-      const customization = {
-        platformName
-      };
-
-      const response = await axios.put(
-        `${API_BASE_URL}/admin/platform-customization`,
-        customization,
+      setIsLoading('customization');
+      
+      const response = await api.put(
+        `/admin/platform-customization`,
         {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
+          platformName,
+          logoUrl,
+          primaryColor,
+          secondaryColor
         }
       );
-
-      toast.success("Platform customization saved");
+      
+      // Update platform customization
+      toast.success('Platform customization saved!');
     } catch (error) {
       console.error('Error saving platform customization:', error);
-      toast.error("Failed to save platform customization");
+      toast.error('Failed to save platform customization');
     } finally {
       setIsLoading(false);
     }

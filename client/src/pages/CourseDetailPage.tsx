@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,12 +7,12 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Clock, BookOpen, Award, CheckCircle, ExternalLink, Play, User, Users, Lock } from 'lucide-react';
-import axios from 'axios';
+import { Progress } from '@/components/ui/progress';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 import { useAuth } from '@/context/AuthProvider';
-
-// API base URL
-const API_BASE_URL = 'http://localhost:5000/api';
+import api from '@/lib/api';
 
 interface Lesson {
   _id: string;
@@ -61,39 +61,35 @@ const CourseDetailPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isEnrolling, setIsEnrolling] = useState(false);
   const [isEnrolled, setIsEnrolled] = useState(false);
+  const [currentProgress, setCurrentProgress] = useState(0);
   
   useEffect(() => {
     const fetchCourse = async () => {
+      setIsLoading(true);
+      
       try {
-        setIsLoading(true);
-        // Get the course details from the API
-        const response = await axios.get(`${API_BASE_URL}/courses/${id}`);
+        // Fetch course details
+        const response = await api.get(`/courses/${id}`);
+        setCourse(response.data);
         
-        if (response.data.success) {
-          setCourse(response.data.course);
+        // Check if user is enrolled
+        if (user) {
+          const userResponse = await api.get(`/users/profile`);
           
-          // Check if user is already enrolled
-          if (isAuthenticated && user) {
-            const token = localStorage.getItem('eduflow-token');
-            const userResponse = await axios.get(`${API_BASE_URL}/users/profile`, {
-              headers: { Authorization: `Bearer ${token}` }
-            });
-            
-            if (userResponse.data.success) {
-              const enrolledCourseIds = userResponse.data.user.enrolledCourses.map((c: any) => 
-                c.courseId._id || c.courseId
-              );
-              setIsEnrolled(enrolledCourseIds.includes(id));
+          const enrolledCourses = userResponse.data.enrolledCourses || [];
+          const isAlreadyEnrolled = enrolledCourses.some(course => course.courseId === id);
+          setIsEnrolled(isAlreadyEnrolled);
+          
+          if (isAlreadyEnrolled) {
+            const userCourse = enrolledCourses.find(course => course.courseId === id);
+            if (userCourse) {
+              setCurrentProgress(userCourse.progress);
             }
           }
-        } else {
-          toast.error('Failed to load course details');
-          navigate('/courses');
         }
       } catch (error) {
-        console.error('Error loading course:', error);
+        console.error('Error fetching course:', error);
         toast.error('Failed to load course details');
-        navigate('/courses');
       } finally {
         setIsLoading(false);
       }
@@ -104,71 +100,32 @@ const CourseDetailPage = () => {
   
   const handleEnrollCourse = async () => {
     if (!user) {
-      navigate('/signin');
+      navigate('/signin', { state: { from: `/course-detail/${id}` } });
       return;
     }
     
     try {
       setIsEnrolling(true);
       
-      const token = localStorage.getItem('eduflow-token');
-      if (!token) {
-        throw new Error('Authentication token not found');
-      }
+      const response = await api.post(`/courses/enroll/${id}`);
       
-      const response = await axios.post(`${API_BASE_URL}/courses/enroll/${id}`, {}, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      
-      toast.success('Successfully enrolled in course!');
       setIsEnrolled(true);
+      toast.success('Successfully enrolled in the course!');
       
-      // Redirect to student dashboard after enrollment
-      navigate('/dashboard/student');
+      // Update progress
+      const completeCourseResponse = await api.post(
+        `/courses/complete/${id}`,
+        { progress: 0 }
+      );
       
-      // Update the course status to completed after 2 minutes (for demo purposes)
-      if (process.env.NODE_ENV !== 'production') {
-        // Show a notification about upcoming completion (for demo)
-        toast.info('Demo: Course will be marked as completed in 2 minutes');
-        
-        setTimeout(async () => {
-          try {
-            const completeResponse = await axios.put(
-              `${API_BASE_URL}/courses/complete/${id}`, 
-              {}, 
-              {
-                headers: {
-                  'Authorization': `Bearer ${token}`
-                }
-              }
-            );
-            
-            if (completeResponse.data.success) {
-              // Show a success message
-              toast.success('You have completed the course and earned a certificate!');
-              
-              // Refresh user data in context if needed (optional)
-              const updatedUserResponse = await axios.get(`${API_BASE_URL}/users/profile`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-              });
-              
-              if (updatedUserResponse.data.success) {
-                // Update the user data in localStorage
-                localStorage.setItem('eduflow-user', JSON.stringify(updatedUserResponse.data.user));
-              }
-            }
-          } catch (error) {
-            console.error('Error completing course:', error);
-            toast.error('Failed to complete the course automatically');
-          }
-        }, 2 * 60 * 1000); // 2 minutes
-      }
+      // Update user profile to get updated enrolled courses
+      const updatedUserResponse = await api.get(`/users/profile`);
       
+      // Update local progress state
+      setCurrentProgress(0);
     } catch (error) {
-      console.error('Enrollment error:', error);
-      toast.error('Failed to enroll in course');
+      console.error('Error enrolling in course:', error);
+      toast.error('Failed to enroll in the course');
     } finally {
       setIsEnrolling(false);
     }
