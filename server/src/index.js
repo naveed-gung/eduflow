@@ -120,14 +120,52 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Connect to MongoDB
-mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log('Connected to MongoDB'))
-  .catch(err => console.error('MongoDB connection error:', err));
-
-// Start server
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-  console.log(`Environment: ${isProduction ? 'production' : 'development'}`);
-});
+// Connect to MongoDB with improved error handling and connection options
+console.log('Connecting to MongoDB...');
+mongoose.connect(process.env.MONGODB_URI, {
+  // Connection options for better resilience
+  serverSelectionTimeoutMS: 5000, // Timeout after 5 seconds instead of 30
+  socketTimeoutMS: 45000, // How long sockets stay open idle
+  maxPoolSize: 10 // Maximum number of connections in the connection pool
+})
+  .then(() => {
+    console.log('Connected to MongoDB successfully');
+    
+    // Start server only after successful database connection
+    const PORT = process.env.PORT || 5000;
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+      console.log(`Environment: ${isProduction ? 'production' : 'development'}`);
+      console.log(`API available at: ${isProduction ? '/api' : `http://localhost:${PORT}/api`}`);
+    });
+  })
+  .catch(err => {
+    console.error('❌ MongoDB connection error:', err);
+    console.error('Make sure your MONGODB_URI environment variable is correct and MongoDB is running.');
+    
+    if (isProduction) {
+      console.error('In production, check your Render environment variables.');
+    } else {
+      console.error('Check your .env file or start MongoDB locally.');
+    }
+    
+    // Exit with error in production, but keep server running in development
+    if (isProduction) {
+      process.exit(1);
+    } else {
+      // Start server anyway in development, but with limited functionality
+      const PORT = process.env.PORT || 5000;
+      app.listen(PORT, () => {
+        console.log(`⚠️ Server running on port ${PORT} WITHOUT database connection`);
+        console.log('API endpoints requiring database access will not work');
+      });
+      
+      // Override routes with error message when DB is unavailable
+      app.use('/api', (req, res) => {
+        res.status(503).json({
+          error: 'Database connection failed',
+          message: 'The server cannot connect to the database. Please try again later.'
+        });
+      });
+    }
+  });

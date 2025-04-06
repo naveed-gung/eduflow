@@ -3,11 +3,8 @@ import { CourseGrid } from '@/components/CourseGrid';
 import { Input } from "@/components/ui/input";
 import { Search, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import axios from 'axios';
 import { toast } from 'sonner';
-
-// API base URL
-const API_BASE_URL = 'http://localhost:5000/api';
+import api from '@/lib/api';
 
 // Number of courses per page
 const COURSES_PER_PAGE = 9;
@@ -40,7 +37,7 @@ const CoursesPage = () => {
     const fetchCourses = async () => {
       try {
         setIsLoading(true);
-        const response = await axios.get(`${API_BASE_URL}/courses`, {
+        const response = await api.get(`/courses`, {
           params: {
             page: currentPage,
             limit: COURSES_PER_PAGE,
@@ -69,7 +66,8 @@ const CoursesPage = () => {
         }
       } catch (error) {
         console.error('Error fetching courses:', error);
-        toast.error('Failed to fetch courses');
+        // Toast error already handled by API interceptor
+        setCourses([]);
       } finally {
         setIsLoading(false);
       }

@@ -218,6 +218,49 @@ eduflow/
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
+## 🔍 Troubleshooting
+
+### Connection Issues
+
+If you're seeing `Error fetching courses: Pt` or `ERR_CONNECTION_REFUSED` errors:
+
+1. **Run the diagnostic script:**
+   ```bash
+   node diagnose-connection.js
+   ```
+
+2. **Check if your servers are running:**
+   - Server should be running on port 5000: `npm run server`
+   - Client should be running on port 5173: `npm run client`
+
+3. **Verify environment variables:**
+   - In `server/.env`: Make sure `MONGODB_URI` points to your MongoDB instance
+   - In `client/.env.development`: Ensure `VITE_API_URL=http://localhost:5000/api`
+
+4. **MongoDB connection:**
+   - For local MongoDB: Ensure MongoDB service is running
+   - For MongoDB Atlas: Verify your connection string and network access
+
+### Deployment Issues
+
+If you're facing issues with the Render deployment:
+
+1. **Check Render logs:**
+   - Navigate to your service on Render dashboard
+   - Click on "Logs" to view build and runtime logs
+
+2. **Verify environment variables:**
+   - Ensure all required environment variables are set in the Render dashboard
+   - Double-check `MONGODB_URI` and `JWT_SECRET`
+
+3. **Build process:**
+   - Confirm that the build process completes successfully
+   - Look for warnings or errors during the build step
+
+4. **Static file serving:**
+   - Check if the server can locate and serve the client build files
+   - Verify that the path resolution in `server/src/index.js` is working correctly
+
 ## 🙏 Acknowledgments
 
 - [shadcn/ui](https://ui.shadcn.com/) for the beautiful component library
