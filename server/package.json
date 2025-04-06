@@ -1,0 +1,38 @@
+{
+  "name": "eduflow-server",
+  "version": "1.0.0",
+  "description": "Backend server for EduFlow online learning platform",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "seed:admin": "node src/seeders/adminSeeder.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "education",
+    "elearning",
+    "mern",
+    "mongodb",
+    "express"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-validator": "^7.0.1",
+    "firebase-admin": "^11.11.1",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.2.3",
+    "multer": "^1.4.5-lts.1",
+    "nodemailer": "^6.9.11",
+    "pdfkit": "^0.14.0",
+    "cloudinary": "^1.41.3"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "name": "eduflow",
+  "version": "1.0.0",
+  "description": "EduFlow - Online Learning Platform",
+  "main": "index.js",
+  "scripts": {
+    "install-all": "npm install && npm run install-client && npm run install-server",
+    "install-client": "cd client && npm install",
+    "install-server": "cd server && npm install",
+    "client": "cd client && npm run dev",
+    "server": "cd server && npm run dev",
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "build": "cd client && npm run build",
+    "start": "cd server && npm start"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+} 
