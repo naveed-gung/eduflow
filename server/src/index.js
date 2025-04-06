@@ -56,8 +56,37 @@ app.get('/api', (req, res) => {
 // Serve frontend in production
 if (isProduction) {
   console.log('Running in production mode, serving static files');
-  // Serve static files from the client's build directory
-  const clientBuildPath = path.join(__dirname, '../../client/dist');
+  
+  // Define possible build paths in order of preference
+  const possibleBuildPaths = [
+    path.join(__dirname, '../public'),
+    path.join(__dirname, '../../client/dist'),
+    path.join(process.cwd(), 'client/dist'),
+    path.join(process.cwd(), 'dist')
+  ];
+  
+  // Find the first path that exists
+  let clientBuildPath = null;
+  for (const buildPath of possibleBuildPaths) {
+    try {
+      if (require('fs').existsSync(path.join(buildPath, 'index.html'))) {
+        clientBuildPath = buildPath;
+        break;
+      }
+    } catch (err) {
+      console.log(`Path ${buildPath} not accessible`);
+    }
+  }
+  
+  if (!clientBuildPath) {
+    console.error('Could not find client build directory!');
+    console.error('Searched paths:', possibleBuildPaths);
+    clientBuildPath = path.join(__dirname, '../public'); // Fallback path
+  }
+  
+  console.log('Client build path:', clientBuildPath);
+  
+  // Serve static files
   app.use(express.static(clientBuildPath));
   
   // Handle React routing, return all requests to React app
@@ -65,7 +94,15 @@ if (isProduction) {
     if (req.url.startsWith('/api')) {
       return next(); // Let API routes handle API requests
     }
-    res.sendFile(path.join(clientBuildPath, 'index.html'));
+    
+    const indexPath = path.join(clientBuildPath, 'index.html');
+    console.log(`Attempting to serve: ${indexPath}`);
+    
+    if (require('fs').existsSync(indexPath)) {
+      res.sendFile(indexPath);
+    } else {
+      res.status(404).send('Client application not found. Please check build configuration.');
+    }
   });
 } else {
   // Welcome route for development

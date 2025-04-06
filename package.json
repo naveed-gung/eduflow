@@ -11,6 +11,8 @@
     "server": "cd server && npm run dev",
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "build": "cd client && npm run build",
+    "postbuild": "mkdir -p server/public && cp -r client/dist/* server/public/ || echo 'Note: Client build copy failed, will use direct path'",
+    "render-build": "bash ./render-build.sh",
     "start": "cd server && npm start"
   },
   "author": "",

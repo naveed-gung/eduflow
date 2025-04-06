@@ -14,6 +14,8 @@ npm run install-all
 # Step 2: Build client
 echo "🏗️ Building client..."
 npm run build
+echo "📋 Copying client build files to server/public directory..."
+npm run postbuild
 
 # Step 3: Check that production configuration files exist
 echo "🔍 Checking configuration files..."
@@ -88,8 +90,11 @@ echo
 echo "2. Sign up for Render at https://render.com"
 echo
 echo "3. Create a new Web Service with these settings:"
-echo "   - Build Command: npm run install-all"
+echo "   - Build Command: bash ./render-build.sh"
 echo "   - Start Command: NODE_ENV=production npm start"
+echo "   - Root Directory: ./"
+echo
+echo "   IMPORTANT: Make sure 'Auto-Deploy on Git Push' is enabled"
 echo
 echo "4. Add these environment variables in Render:"
 echo "   - NODE_ENV: production"
