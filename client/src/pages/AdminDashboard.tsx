@@ -38,9 +38,7 @@ import { CourseForm } from '@/components/CourseForm';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-
-// API Base URL
-const API_BASE_URL = 'http://localhost:5000/api';
+import api from '@/lib/api';  // Import the API client
 
 // Student interface
 interface Student {
@@ -96,15 +94,9 @@ const AdminDashboard = () => {
   const fetchCourses = async () => {
     try {
       setIsLoading(true);
-      const token = localStorage.getItem('eduflow-token');
-      if (!token) return;
-
+      
       // Fetch courses
-      const coursesResponse = await axios.get(`${API_BASE_URL}/courses/admin`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
+      const coursesResponse = await api.get(`/courses/admin`);
 
       if (coursesResponse.data.success && coursesResponse.data.courses) {
         setCourses(coursesResponse.data.courses);
@@ -112,11 +104,7 @@ const AdminDashboard = () => {
       
       // Fetch recent students
       try {
-        const studentsResponse = await axios.get(`${API_BASE_URL}/users/recent-students`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
+        const studentsResponse = await api.get(`/users/recent-students`);
         
         if (studentsResponse.data.success && studentsResponse.data.students) {
           setRecentStudents(studentsResponse.data.students);
@@ -129,8 +117,6 @@ const AdminDashboard = () => {
       }
     } catch (error) {
       console.error('Error fetching courses:', error);
-      // Keep using mock data if API fails
-      setCourses(getAdminCourses());
       toast.error('Failed to fetch courses from the server');
     } finally {
       setIsLoading(false);
@@ -163,31 +149,21 @@ const AdminDashboard = () => {
   // Confirm delete course
   const confirmDeleteCourse = async () => {
     if (!selectedCourse) return;
-
+    
     try {
-      setIsLoading(true);
-      const token = localStorage.getItem('eduflow-token');
-      if (!token) return;
-
-      const response = await axios.delete(`${API_BASE_URL}/courses/${selectedCourse.id}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
+      const response = await api.delete(`/courses/${selectedCourse.id}`);
+      
       if (response.data.success) {
         toast.success('Course deleted successfully');
-        fetchCourses();
+        // Remove course from state
+        setCourses(courses.filter(c => c.id !== selectedCourse.id));
+        setIsDeleteDialogOpen(false);
       } else {
-        toast.error(response.data.message || 'Failed to delete course');
+        toast.error('Failed to delete course');
       }
     } catch (error) {
       console.error('Error deleting course:', error);
-      toast.error('An error occurred while deleting the course');
-    } finally {
-      setIsLoading(false);
-      setIsDeleteDialogOpen(false);
-      setSelectedCourse(null);
+      toast.error('Failed to delete course');
     }
   };
 

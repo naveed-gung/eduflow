@@ -19,9 +19,7 @@ import { cn } from '@/lib/utils';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { useAuth } from '@/context/AuthProvider';
-
-// API base URL
-const API_BASE_URL = 'http://localhost:5000/api';
+import api from '@/lib/api';  // Import the API client
 
 interface DashboardStatsProps {
   role: 'admin' | 'student';
@@ -83,66 +81,29 @@ export function DashboardStats({ role, className }: DashboardStatsProps) {
     const fetchStats = async () => {
       try {
         setIsLoading(true);
-        const token = localStorage.getItem('eduflow-token');
-        if (!token) return;
         
-        if (role === 'student') {
-          // Fetch student stats
-          const response = await axios.get(`${API_BASE_URL}/users/dashboard-stats`, {
-            headers: {
-              'Authorization': `Bearer ${token}`
-            }
-          });
-          
-          if (response.data.success) {
-            // Map API data to our state
-            const stats = response.data.stats;
-            
-            setStudentStats({
-              enrolledCourses: stats.enrolledCount || 0,
-              completedCourses: stats.completedCount || 0,
-              certificatesEarned: stats.certificatesCount || 0,
-              averageScore: stats.averageScore || 0,
-              weeklyProgress: stats.weeklyLearningActivity || studentStats.weeklyProgress,
-              courseProgress: stats.courseProgress || [],
-              totalLearningTime: stats.totalLearningTime || 0
-            });
-          }
-        } else {
-          // Fetch admin stats
-          const response = await axios.get(`${API_BASE_URL}/users/admin/dashboard-stats`, {
-            headers: {
-              'Authorization': `Bearer ${token}`
-            }
-          });
-          
-          if (response.data.success) {
-            // Map API data to our state
-            const stats = response.data.stats;
-            
-            setAdminStats({
-              totalStudents: stats.totalStudents || 0,
-              activeCourses: stats.activeCourses || 0,
-              completionRate: stats.avgCompletionRate || 0,
-              totalRevenue: stats.totalRevenue || 0,
-              coursePerformance: stats.coursePerformance || [],
-              categoryDistribution: stats.categoryDistribution || []
-            });
+        const endpoint = role === 'admin' 
+          ? '/users/admin/dashboard-stats' 
+          : '/users/student/dashboard-stats';
+        
+        const response = await api.get(endpoint);
+        
+        if (response.data.success) {
+          if (role === 'admin') {
+            setAdminStats(response.data.stats);
+          } else {
+            setStudentStats(response.data.stats);
           }
         }
       } catch (error) {
         console.error('Error fetching dashboard stats:', error);
-        // If the API fails, we'll use default/fallback values
-        // No need to show an error toast as this is passive data fetching
       } finally {
         setIsLoading(false);
       }
     };
     
-    if (user) {
-      fetchStats();
-    }
-  }, [role, user]);
+    fetchStats();
+  }, [role]);
 
   // Use either the fetched data or fallbacks
   const stats = role === 'admin' 

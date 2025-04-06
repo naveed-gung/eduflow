@@ -7,9 +7,7 @@ import { toast } from 'sonner';
 import axios from 'axios';
 import { PageHeader } from '@/components/PageHeader';
 import { useSearchParams } from 'react-router-dom';
-
-// API base URL
-const API_BASE_URL = 'http://localhost:5000/api';
+import api from '@/lib/api';  // Import the API client
 
 interface VerificationResult {
   success: boolean;
@@ -44,9 +42,11 @@ const CertificateVerifierPage = () => {
   // API call to verify certificate
   const verifyWithApi = async (id: string) => {
     try {
-      const response = await axios.get(
-        `${API_BASE_URL}/certificates/verify-by-number/${encodeURIComponent(id)}`
-      );
+      setIsVerifying(true);
+      setResult(null);
+      
+      // Call the verification API endpoint
+      const response = await api.get(`/certificates/verify/${id}`);
       
       setResult(response.data);
       
@@ -56,11 +56,15 @@ const CertificateVerifierPage = () => {
         toast.error('Certificate verification failed');
       }
     } catch (error) {
-      console.error('Error verifying certificate:', error);
-      setResult({
+      console.error('Certificate verification error:', error);
+      
+      // Set a generic error result
+      const errorResult: VerificationResult = {
         success: false,
-        message: 'Certificate not found or invalid'
-      });
+        message: 'Failed to verify certificate. Please try again or contact support.',
+      };
+      
+      setResult(errorResult);
       toast.error('Certificate verification failed');
     } finally {
       setIsVerifying(false);
@@ -69,8 +73,6 @@ const CertificateVerifierPage = () => {
   
   // Unified function to verify certificate
   const verifyCertificate = async (id: string) => {
-    setIsVerifying(true);
-    setResult(null);
     await verifyWithApi(id);
   };
   

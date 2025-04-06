@@ -10,9 +10,7 @@ import { Clock, BookOpen, Award, CheckCircle, ExternalLink, Play, User, Users, L
 import axios from 'axios';
 import { toast } from 'sonner';
 import { useAuth } from '@/context/AuthProvider';
-
-// API base URL
-const API_BASE_URL = 'http://localhost:5000/api';
+import api from '@/lib/api';  // Import the API client
 
 interface Lesson {
   _id: string;
@@ -67,17 +65,14 @@ const CourseDetailPage = () => {
       try {
         setIsLoading(true);
         // Get the course details from the API
-        const response = await axios.get(`${API_BASE_URL}/courses/${id}`);
+        const response = await api.get(`/courses/${id}`);
         
         if (response.data.success) {
           setCourse(response.data.course);
           
           // Check if user is already enrolled
           if (isAuthenticated && user) {
-            const token = localStorage.getItem('eduflow-token');
-            const userResponse = await axios.get(`${API_BASE_URL}/users/profile`, {
-              headers: { Authorization: `Bearer ${token}` }
-            });
+            const userResponse = await api.get(`/users/profile`);
             
             if (userResponse.data.success) {
               const enrolledCourseIds = userResponse.data.user.enrolledCourses.map((c: any) => 
@@ -103,7 +98,8 @@ const CourseDetailPage = () => {
   }, [id, navigate, isAuthenticated, user]);
   
   const handleEnrollCourse = async () => {
-    if (!user) {
+    if (!isAuthenticated) {
+      toast.error('Please sign in to enroll in this course');
       navigate('/signin');
       return;
     }
@@ -111,64 +107,52 @@ const CourseDetailPage = () => {
     try {
       setIsEnrolling(true);
       
-      const token = localStorage.getItem('eduflow-token');
-      if (!token) {
-        throw new Error('Authentication token not found');
-      }
+      // Enroll user in the course
+      const response = await api.post(`/courses/${id}/enroll`);
       
-      const response = await axios.post(`${API_BASE_URL}/courses/enroll/${id}`, {}, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      
-      toast.success('Successfully enrolled in course!');
-      setIsEnrolled(true);
-      
-      // Redirect to student dashboard after enrollment
-      navigate('/dashboard/student');
-      
-      // Update the course status to completed after 2 minutes (for demo purposes)
-      if (process.env.NODE_ENV !== 'production') {
-        // Show a notification about upcoming completion (for demo)
-        toast.info('Demo: Course will be marked as completed in 2 minutes');
+      if (response.data.success) {
+        setIsEnrolled(true);
+        toast.success('Successfully enrolled in the course!');
+        
+        // For demo, set a 10-second timer to mark the course as completed
+        toast.info('For demo purposes, the course will be marked as completed in 10 seconds');
         
         setTimeout(async () => {
           try {
-            const completeResponse = await axios.put(
-              `${API_BASE_URL}/courses/complete/${id}`, 
-              {}, 
-              {
-                headers: {
-                  'Authorization': `Bearer ${token}`
-                }
-              }
-            );
+            // Mark the course as completed
+            const completeResponse = await api.post(`/courses/${id}/complete`);
             
             if (completeResponse.data.success) {
-              // Show a success message
-              toast.success('You have completed the course and earned a certificate!');
+              toast.success('Course marked as completed! Certificate generated.');
               
-              // Refresh user data in context if needed (optional)
-              const updatedUserResponse = await axios.get(`${API_BASE_URL}/users/profile`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-              });
+              // Refresh user data
+              const userResponse = await api.get(`/users/profile`);
               
-              if (updatedUserResponse.data.success) {
-                // Update the user data in localStorage
-                localStorage.setItem('eduflow-user', JSON.stringify(updatedUserResponse.data.user));
+              if (userResponse.data.success) {
+                const certId = userResponse.data.user.certificates.find(
+                  (cert: any) => cert.courseId === id || cert.courseId?._id === id
+                )?._id;
+                
+                if (certId) {
+                  toast.success('You can view your certificate in your profile', {
+                    action: {
+                      label: 'View',
+                      onClick: () => navigate('/dashboard/student')
+                    }
+                  });
+                }
               }
             }
           } catch (error) {
             console.error('Error completing course:', error);
-            toast.error('Failed to complete the course automatically');
           }
-        }, 2 * 60 * 1000); // 2 minutes
+        }, 10 * 1000); // 10 seconds
+      } else {
+        toast.error('Failed to enroll in the course');
       }
-      
     } catch (error) {
-      console.error('Enrollment error:', error);
-      toast.error('Failed to enroll in course');
+      console.error('Error enrolling in course:', error);
+      toast.error('Failed to enroll in the course');
     } finally {
       setIsEnrolling(false);
     }

@@ -8,9 +8,7 @@ import { useAuth } from '@/context/AuthProvider';
 import { toast } from 'sonner';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Slider } from '@/components/ui/slider';
-import axios from 'axios';
-
-const API_BASE_URL = 'http://localhost:5000/api';
+import api from '@/lib/api';
 
 const SettingsPage = () => {
   const { user, setUser } = useAuth();
@@ -63,15 +61,7 @@ const SettingsPage = () => {
         accentColor: selectedAccent
       };
 
-      const response = await axios.put(
-        `${API_BASE_URL}/users/preferences`,
-        { preferences: updatedPreferences },
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        }
-      );
+      const response = await api.put(`/users/preferences`, { preferences: updatedPreferences });
 
       if (response.data.success) {
         // Update local user state
@@ -97,15 +87,7 @@ const SettingsPage = () => {
         throw new Error('Authentication token not found');
       }
 
-      const response = await axios.put(
-        `${API_BASE_URL}/users/preferences`,
-        { preferences: { notifications } },
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        }
-      );
+      const response = await api.put(`/users/preferences`, { preferences: { notifications } });
 
       if (response.data.success) {
         if (response.data.user) {
@@ -137,15 +119,7 @@ const SettingsPage = () => {
         highContrast
       };
 
-      const response = await axios.put(
-        `${API_BASE_URL}/users/preferences`,
-        { preferences: { accessibility: accessibilityPreferences } },
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        }
-      );
+      const response = await api.put(`/users/preferences`, { preferences: { accessibility: accessibilityPreferences } });
 
       if (response.data.success) {
         if (response.data.user) {
@@ -177,15 +151,7 @@ const SettingsPage = () => {
         emailVerification
       };
 
-      const response = await axios.put(
-        `${API_BASE_URL}/admin/settings`,
-        adminSettings,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        }
-      );
+      const response = await api.put(`/admin/settings`, adminSettings);
 
       toast.success("Admin settings saved");
     } catch (error) {
@@ -208,15 +174,7 @@ const SettingsPage = () => {
         platformName
       };
 
-      const response = await axios.put(
-        `${API_BASE_URL}/admin/platform-customization`,
-        customization,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        }
-      );
+      const response = await api.put(`/admin/platform-customization`, customization);
 
       toast.success("Platform customization saved");
     } catch (error) {

@@ -38,9 +38,7 @@ import {
 import { Award, MoreHorizontal, Search, Eye } from 'lucide-react';
 import { CertificateViewer } from '@/components/CertificateViewer';
 import { PageHeader } from '@/components/PageHeader';
-
-// API base URL
-const API_BASE_URL = 'http://localhost:5000/api';
+import api from '@/lib/api';  // Import the API client
 
 interface CertificateType {
   _id: string;
@@ -68,41 +66,25 @@ const AdminCertificatesPage = () => {
   const [selectedCertificate, setSelectedCertificate] = useState<any>(null);
   const [isCertificateDialogOpen, setIsCertificateDialogOpen] = useState(false);
   const [selectedUserName, setSelectedUserName] = useState('');
+  const [totalItems, setTotalItems] = useState(0);
+  const [itemsPerPage] = useState(10);
 
   // Fetch certificates
   useEffect(() => {
     const fetchCertificates = async () => {
       try {
         setIsLoading(true);
-        const token = localStorage.getItem('eduflow-token');
         
-        if (!token) {
-          toast.error('Authentication token missing');
-          return;
-        }
-        
-        const params = new URLSearchParams({
-          page: currentPage.toString(),
-          limit: '10',
-        });
-        
-        if (searchQuery) {
-          params.append('search', searchQuery);
-        }
-        
-        const response = await axios.get(`${API_BASE_URL}/certificates/admin/all?${params}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
+        const response = await api.get(`/certificates/admin?page=${currentPage}&limit=${itemsPerPage}&search=${searchQuery}`);
         
         if (response.data.success) {
-          setCertificates(response.data.certificates);
-          setTotalPages(response.data.totalPages);
+          setCertificates(response.data.certificates || []);
+          setTotalItems(response.data.totalCount || 0);
+          setTotalPages(response.data.totalPages || 1);
         }
       } catch (error) {
         console.error('Error fetching certificates:', error);
-        toast.error('Failed to load certificates');
+        toast.error('Failed to fetch certificates');
       } finally {
         setIsLoading(false);
       }

@@ -11,9 +11,7 @@ import { CertificateCard } from '@/components/CertificateCard';
 import { CertificateViewer } from '@/components/CertificateViewer';
 import { Button } from "@/components/ui/button";
 import { useNavigate } from 'react-router-dom';
-
-// API base URL
-const API_BASE_URL = 'http://localhost:5000/api';
+import api from '@/lib/api';  // Import the API client
 
 const StudentDashboard = () => {
   const { user } = useAuth();
@@ -42,11 +40,7 @@ const StudentDashboard = () => {
         if (!token) return;
         
         // Fetch enrolled courses
-        const coursesResponse = await axios.get(`${API_BASE_URL}/courses/enrolled`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
+        const coursesResponse = await api.get(`/courses/enrolled`);
         
         if (coursesResponse.data.success && coursesResponse.data.enrolledCourses) {
           // Transform enrolled courses to match CourseProps interface
@@ -66,29 +60,21 @@ const StudentDashboard = () => {
         }
         
         // Fetch dashboard stats
-        const statsResponse = await axios.get(`${API_BASE_URL}/users/student/dashboard-stats`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
+        const statsResponse = await api.get(`/users/student/dashboard-stats`);
         
         if (statsResponse.data.success) {
           setStats(statsResponse.data.stats);
         }
         
         // Fetch user certificates
-        const certificatesResponse = await axios.get(`${API_BASE_URL}/certificates`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
+        const certificatesResponse = await api.get(`/certificates`);
         
         if (certificatesResponse.data.success) {
           setCertificates(certificatesResponse.data.certificates || []);
         }
         
         // Also fetch some recommended courses
-        const recommendedResponse = await axios.get(`${API_BASE_URL}/courses?limit=6`);
+        const recommendedResponse = await api.get(`/courses?limit=6`);
         
         if (recommendedResponse.data.success && recommendedResponse.data.courses) {
           // Transform courses to match CourseProps interface

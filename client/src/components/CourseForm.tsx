@@ -35,27 +35,27 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { fileToBase64, validateImageFile } from '@/lib/utils';
 import axios from 'axios';
 import { toast } from 'sonner';
-
-// API base URL
-const API_BASE_URL = 'http://localhost:5000/api';
+import api from '@/lib/api';  // Import the API client
 
 interface CourseFormProps {
+  courseData?: any;  // Add support for existing course data
+  isEdit?: boolean;  // Add support for edit mode
   onSuccess?: () => void;
   onCancel?: () => void;
 }
 
-export function CourseForm({ onSuccess, onCancel }: CourseFormProps) {
-  // Course data states
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [category, setCategory] = useState('');
-  const [price, setPrice] = useState('');
-  const [duration, setDuration] = useState('');
-  const [level, setLevel] = useState('beginner');
-  const [isPublic, setIsPublic] = useState(true);
+export function CourseForm({ courseData, isEdit = false, onSuccess, onCancel }: CourseFormProps) {
+  // Course data states - initialize with courseData if provided
+  const [title, setTitle] = useState(courseData?.title || '');
+  const [description, setDescription] = useState(courseData?.description || '');
+  const [category, setCategory] = useState(courseData?.category || '');
+  const [price, setPrice] = useState(courseData?.price ? String(courseData.price) : '');
+  const [duration, setDuration] = useState(courseData?.duration || '');
+  const [level, setLevel] = useState(courseData?.level?.toLowerCase() || 'beginner');
+  const [isPublic, setIsPublic] = useState(courseData?.status !== 'Draft');
   
   // Image upload states
-  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
+  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(courseData?.thumbnailUrl || null);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -118,18 +118,13 @@ export function CourseForm({ onSuccess, onCancel }: CourseFormProps) {
       return;
     }
     
-    if (!thumbnailPreview) {
+    if (!thumbnailPreview && !isEdit) {
       toast.error('Course thumbnail is required');
       return;
     }
     
     try {
       setIsSubmitting(true);
-      
-      const token = localStorage.getItem('eduflow-token');
-      if (!token) {
-        throw new Error('Authentication token not found');
-      }
       
       // Format level to have first letter uppercase to match server validation
       const formattedLevel = level.charAt(0).toUpperCase() + level.slice(1);
@@ -146,36 +141,34 @@ export function CourseForm({ onSuccess, onCancel }: CourseFormProps) {
         learningPoints: []
       };
       
-      const response = await axios.post(`${API_BASE_URL}/courses`, courseData, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
+      let response;
       
-      toast.success('Course created successfully');
-      
-      // Clear form
-      setTitle('');
-      setDescription('');
-      setCategory('');
-      setPrice('');
-      setDuration('');
-      setLevel('beginner');
-      setThumbnailPreview(null);
+      if (isEdit) {
+        // Update existing course
+        response = await api.put(`/courses/${courseData.id}`, courseData);
+        toast.success('Course updated successfully');
+      } else {
+        // Create new course
+        response = await api.post('/courses', courseData);
+        toast.success('Course created successfully');
+        
+        // Clear form after creation
+        setTitle('');
+        setDescription('');
+        setCategory('');
+        setPrice('');
+        setDuration('');
+        setLevel('beginner');
+        setThumbnailPreview(null);
+      }
       
       // Call onSuccess callback if provided
       if (onSuccess) {
         onSuccess();
       }
     } catch (error) {
-      console.error('Error creating course:', error);
-      if (axios.isAxiosError(error) && error.response) {
-        // Show specific error message if available
-        const errorMsg = error.response.data.message || error.response.data.errors?.[0]?.msg || 'Failed to create course';
-        toast.error(errorMsg);
-      } else {
-        toast.error('Failed to create course');
-      }
+      console.error(`Error ${isEdit ? 'updating' : 'creating'} course:`, error);
+      toast.error(`Failed to ${isEdit ? 'update' : 'create'} course`);
     } finally {
       setIsSubmitting(false);
     }

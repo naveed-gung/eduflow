@@ -214,53 +214,60 @@ eduflow/
 └── package.json          # Root package.json for project-wide scripts
 ```
 
-<<<<<<< HEAD
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
 ## 🔍 Troubleshooting
 
 ### Connection Issues
 
 If you're seeing `Error fetching courses: Pt` or `ERR_CONNECTION_REFUSED` errors:
 
-1. **Run the diagnostic script:**
+1. **Clear Browser State:**
+   - Open browser console (F12)
+   - Copy and paste the code from `reset-app-state.js` to clear local storage and reload
+   - This often resolves client-side connection caching issues
+
+2. **Check Network Configuration:**
+   - Ensure the API URL is configured properly in `client/src/lib/api.ts`
+   - The production build should be using a relative path (`/api`) not an absolute URL
+   - Check browser console to see which API URL is being used
+
+3. **Verify Environment Variables:**
+   - Client: Ensure the `.env.production` file contains `VITE_API_URL=/api`
+   - All API calls should use the centralized API client from `client/src/lib/api.ts`
+
+4. **Run Diagnostic Script:**
    ```bash
    node diagnose-connection.js
    ```
 
-2. **Check if your servers are running:**
-   - Server should be running on port 5000: `npm run server`
-   - Client should be running on port 5173: `npm run client`
+### API Connection Issues in Production
 
-3. **Verify environment variables:**
-   - In `server/.env`: Make sure `MONGODB_URI` points to your MongoDB instance
-   - In `client/.env.development`: Ensure `VITE_API_URL=http://localhost:5000/api`
+If your deployed app on Render continues to show API connection errors:
 
-4. **MongoDB connection:**
-   - For local MongoDB: Ensure MongoDB service is running
-   - For MongoDB Atlas: Verify your connection string and network access
+1. **Check Render Logs:**
+   - Look for any server-side errors in the Render dashboard logs
+   - Verify the server is starting correctly and connecting to MongoDB
 
-### Deployment Issues
+2. **Inspect Network Requests:**
+   - Use browser developer tools to check network requests
+   - Ensure requests are going to `/api/*` paths, not `http://localhost:5000/api/*`
 
-If you're facing issues with the Render deployment:
+3. **Force a Clean Deployment:**
+   - Commit your changes with these API fixes:
+   ```bash
+   git add .
+   git commit -m "Fix API connection issues in production"
+   git push
+   ```
+   - If automatic deployments are enabled, this will trigger a fresh build
+   - Otherwise, manually deploy from the Render dashboard
 
-1. **Check Render logs:**
-   - Navigate to your service on Render dashboard
-   - Click on "Logs" to view build and runtime logs
-
-2. **Verify environment variables:**
-   - Ensure all required environment variables are set in the Render dashboard
-   - Double-check `MONGODB_URI` and `JWT_SECRET`
-
-3. **Build process:**
-   - Confirm that the build process completes successfully
-   - Look for warnings or errors during the build step
-
-4. **Static file serving:**
-   - Check if the server can locate and serve the client build files
-   - Verify that the path resolution in `server/src/index.js` is working correctly
+4. **Manual Client Fix:**
+   - If you still have issues, try the reset script in the browser console:
+   ```javascript
+   localStorage.clear();
+   sessionStorage.clear();
+   location.reload(true);
+   ```
 
 ## 🙏 Acknowledgments
 
@@ -269,8 +276,5 @@ If you're facing issues with the Render deployment:
 - [Tailwind CSS](https://tailwindcss.com/) for efficient styling
 - [Firebase](https://firebase.google.com/) for authentication services
 - [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) for database hosting
-=======
-
->>>>>>> 4ec86e1d20aa076c0de5eef702820d6a17f38c87
 
 

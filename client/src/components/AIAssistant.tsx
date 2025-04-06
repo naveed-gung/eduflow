@@ -19,9 +19,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
-
-// API base URL
-const API_BASE_URL = 'http://localhost:5000/api';
+import api from '@/lib/api';  // Import the API client
 
 // Message type definition
 interface Message {
@@ -181,100 +179,56 @@ export function AIAssistant() {
   const handleSendMessage = async () => {
     if (!inputValue.trim()) return;
     
-      const userMessage: Message = {
+    // Create a new message
+    const newMessage = {
       id: generateId(),
       content: inputValue,
-        sender: 'user',
-        timestamp: new Date()
-      };
-      
-    setMessages(prevMessages => [...prevMessages, userMessage]);
+      sender: 'user' as const,
+      timestamp: new Date()
+    };
+    
+    // Update the messages with the new one
+    const updatedMessages = [...messages, newMessage];
+    setMessages(updatedMessages);
+    
+    // Clear the input field
     setInputValue('');
+    
+    // Set loading state
     setIsLoading(true);
     
     try {
-      let response;
+      // Send message to API
+      const response = await api.post('/ai/chat', {
+        message: newMessage.content
+      });
       
-      if (user) {
-        // If user is authenticated, send request to the actual AI endpoint
-        const token = localStorage.getItem('eduflow-token');
-        if (!token) {
-          throw new Error('Authentication token not found');
-        }
-        
-        response = await axios.post(
-          `${API_BASE_URL}/ai/chat`,
-          { 
-            message: inputValue,
-            userId: user.id,
-            preferences: {
-              responseLength,
-              voiceEnabled
-            },
-            context: {
-              currentPath: location.pathname,
-              currentPage: location.pathname.split('/').pop() || 'home',
-              previousMessages: messages.slice(-5) // Send last 5 messages for context
-            }
-          },
-          {
-            headers: {
-              'Authorization': `Bearer ${token}`
-            }
-          }
-        );
-        
-        if (response.data && response.data.message) {
-          const aiMessage: Message = {
-            id: generateId(),
-            content: response.data.message,
-            sender: 'ai',
-            timestamp: new Date()
-          };
-          
-          setMessages(prevMessages => [...prevMessages, aiMessage]);
-          
-          // Voice output if enabled
-          if (voiceEnabled && window.speechSynthesis) {
-            const speech = new SpeechSynthesisUtterance(response.data.message);
-            speech.rate = 0.9;
-            window.speechSynthesis.speak(speech);
-          }
-        }
-      } else {
-        // For non-authenticated users, simulate a response with a timeout
-        setTimeout(() => {
-          const mockResponses = [
-            "I'd be happy to help with that! To get personalized assistance, please sign in first.",
-            "That's a great question! For a complete answer tailored to your learning journey, please sign in to your account.",
-            "I can provide detailed information about our courses once you're signed in. Would you like to do that now?",
-            "To give you the most relevant recommendations, I'll need to know more about your learning history. Please sign in to proceed."
-          ];
-          
-          const randomResponse = mockResponses[Math.floor(Math.random() * mockResponses.length)];
-          
-          const aiMessage: Message = {
-            id: generateId(),
-            content: randomResponse,
-            sender: 'ai',
-          timestamp: new Date()
-        };
-        
-          setMessages(prevMessages => [...prevMessages, aiMessage]);
-      }, 1000);
-      }
-    } catch (error) {
-      console.error('Error sending message to AI:', error);
-      
-      // More intelligent fallback response
-      const errorMessage: Message = {
+      // Create AI response message
+      const aiResponse = {
         id: generateId(),
-        content: "I apologize for the technical difficulty. Our server appears to be experiencing issues. Please try again in a moment, or refresh the page if the problem persists.",
-        sender: 'ai',
+        content: response.data.message,
+        sender: 'ai' as const,
         timestamp: new Date()
       };
       
-      setMessages(prevMessages => [...prevMessages, errorMessage]);
+      // Update messages with AI response
+      setMessages([...updatedMessages, aiResponse]);
+      
+      // Save conversation to localStorage
+      localStorage.setItem('ai-conversation', JSON.stringify([...updatedMessages, aiResponse]));
+    } catch (error) {
+      console.error('Error sending message to AI:', error);
+      
+      // Create error message
+      const errorMessage = {
+        id: generateId(),
+        content: "I'm sorry, I'm having trouble connecting to the server. Please try again later.",
+        sender: 'ai' as const,
+        timestamp: new Date()
+      };
+      
+      // Update messages with error
+      setMessages([...updatedMessages, errorMessage]);
     } finally {
       setIsLoading(false);
     }
