@@ -35,24 +35,7 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 // Configure CORS for deployment
 const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
 app.use(cors({
-  origin: function(origin, callback) {
-    // Allow requests with no origin (like mobile apps, curl, etc)
-    if (!origin) return callback(null, true);
-    
-    // Allow requests from localhost, local IPs, and render domain
-    const allowedOrigins = [
-      'http://localhost:5173',
-      'https://eduflow.onrender.com'
-    ];
-    
-    // Allow any local network IP (192.168.*)
-    if (origin.match(/^http:\/\/192\.168\.\d+\.\d+:\d+$/) || 
-        allowedOrigins.indexOf(origin) !== -1) {
-      return callback(null, true);
-    }
-    
-    callback(new Error('Not allowed by CORS'));
-  },
+  origin: true, // Allow all origins in all environments for now
   credentials: true
 }));
 
@@ -88,10 +71,11 @@ if (isProduction) {
     try {
       if (require('fs').existsSync(path.join(buildPath, 'index.html'))) {
         clientBuildPath = buildPath;
+        console.log(`Found valid client build at: ${buildPath}`);
         break;
       }
     } catch (err) {
-      console.log(`Path ${buildPath} not accessible`);
+      console.log(`Path ${buildPath} not accessible: ${err.message}`);
     }
   }
   
@@ -99,6 +83,7 @@ if (isProduction) {
     console.error('Could not find client build directory!');
     console.error('Searched paths:', possibleBuildPaths);
     clientBuildPath = path.join(__dirname, '../public'); // Fallback path
+    console.log(`Using fallback path: ${clientBuildPath}`);
   }
   
   console.log('Client build path:', clientBuildPath);
@@ -108,7 +93,11 @@ if (isProduction) {
   
   // Handle React routing, return all requests to React app
   app.get('*', (req, res, next) => {
+    // Log requested path for debugging
+    console.log(`Received request for: ${req.url}`);
+    
     if (req.url.startsWith('/api')) {
+      console.log('API request - passing to API routes');
       return next(); // Let API routes handle API requests
     }
     
@@ -116,8 +105,10 @@ if (isProduction) {
     console.log(`Attempting to serve: ${indexPath}`);
     
     if (require('fs').existsSync(indexPath)) {
+      console.log('Found index.html, sending file');
       res.sendFile(indexPath);
     } else {
+      console.error(`index.html not found at ${indexPath}`);
       res.status(404).send('Client application not found. Please check build configuration.');
     }
   });

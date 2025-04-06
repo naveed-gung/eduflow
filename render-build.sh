@@ -9,7 +9,14 @@ echo "============================================"
 echo "Current directory: $(pwd)"
 echo "Node version: $(node -v)"
 echo "NPM version: $(npm -v)"
+echo "Environment variables:"
+echo "NODE_ENV: $NODE_ENV"
+echo "RENDER: $RENDER"
 ls -la
+
+# Set environment variables for production
+export RENDER=true
+export NODE_ENV=production
 
 # Build client application
 echo "📦 Building client application..."
@@ -30,6 +37,10 @@ ls -la server/public || echo "Directory listing failed"
 echo "📦 Installing server dependencies..."
 cd server
 npm install
+
+# Run diagnostic script
+echo "🔍 Running diagnostics..."
+node diagnose-render.js || echo "Diagnostic script failed, but continuing deployment"
 cd ..
 
 echo "✅ Build process complete!" 

@@ -49,5 +49,4 @@ pids
 .npm
 
 # Optional eslint cache
-.eslintcache 
-nul
+.eslintcache
