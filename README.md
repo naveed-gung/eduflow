@@ -189,32 +189,6 @@ VITE_FIREBASE_STORAGE_BUCKET=your_firebase_storage_bucket
 VITE_FIREBASE_APP_ID=your_firebase_app_id
 ```
 
-## 📁 Folder Structure
-
-```
-eduflow/
-├── client/               # 🖥️ Frontend React application
-│   ├── public/           # 🌐 Static assets
-│   └── src/              # 💻 React source code
-│       ├── components/   # 🧩 Reusable components
-│       ├── context/      # 🌍 React context providers
-│       ├── hooks/        # 🎣 Custom hooks
-│       ├── lib/          # 🛠️ Utility functions
-│       ├── pages/        # 📄 Page components
-│       └── App.tsx       # 🚀 Main App component
-│
-├── server/               # 🖧 Backend Node.js application
-│   ├── src/              # 📂 Server source code
-│   │   ├── middleware/   # 🔄 Express middleware
-│   │   ├── models/       # 📊 Mongoose models
-│   │   ├── routes/       # 🛣️ API routes
-│   │   ├── seeders/      # 🌱 Database seed scripts
-│   │   └── index.js      # 🏁 Server entry point
-│   └── .env              # 🔒 Environment variables
-│
-└── package.json          # 📦 Root package.json for project-wide scripts
-```
-
 ## 🔍 Troubleshooting
 
 ### Connection Issues 🔌
@@ -269,21 +243,5 @@ If your deployed app on Render continues to show API connection errors:
    sessionStorage.clear();
    location.reload(true);
    ```
-
-## 🙏 Acknowledgments
-
-- 🧩 [shadcn/ui](https://ui.shadcn.com/) for the beautiful component library
-- 🎨 [Lucide Icons](https://lucide.dev/) for the elegant icon set
-- 💅 [Tailwind CSS](https://tailwindcss.com/) for efficient styling
-- 🔥 [Firebase](https://firebase.google.com/) for authentication services
-- 🗃️ [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) for database hosting
-
-## 🎉 Let's Get Learning! 
-
-Join the EduFlow community today and transform your learning experience! Whether you're a student looking to expand your knowledge or an instructor ready to share your expertise, EduFlow provides the perfect platform for your educational journey. 🚀
-
-<div align="center">
-  <h3>🌟 Happy Learning! 🌟</h3>
-</div>
 
 
