@@ -78,17 +78,17 @@ EduFlow is a full-stack e-learning platform built with the MERN stack (MongoDB, 
 
 2. Install dependencies for both client and server:
    ```bash
-   npm install
+   npm run install-all
    ```
 
 3. Configure environment variables:
-   - Create a `.env` file in the root directory based on `.env.example`
+   - Create a `.env` file in the server directory based on `.env.example`
    - Set up MongoDB connection
    - Configure Firebase credentials
 
 4. Run the application:
    ```bash
-   # Development mode
+   # Development mode (runs both client and server)
    npm run dev
    
    # Run client only
@@ -102,20 +102,67 @@ EduFlow is a full-stack e-learning platform built with the MERN stack (MongoDB, 
    - Frontend: http://localhost:5173
    - Backend API: http://localhost:5000
 
+## Deployment to Render
+
+EduFlow is configured for easy deployment to [Render](https://render.com) as a single Web Service.
+
+### Steps for Deployment
+
+1. **Create a MongoDB Atlas Database**
+   - Sign up for [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
+   - Create a new cluster
+   - Set up database access (username & password)
+   - Add a network access rule for Render IPs (0.0.0.0/0 for simplicity)
+   - Get your connection string
+
+2. **Set up GitHub Repository**
+   - Push your code to GitHub
+   ```bash
+   git add .
+   git commit -m "Prepare for deployment"
+   git push
+   ```
+
+3. **Deploy to Render**
+   - Sign up for [Render](https://render.com)
+   - From your dashboard, select "New" and "Web Service"
+   - Connect your GitHub repo
+   - Configure your Web Service:
+     - **Name**: `eduflow` (or your preferred name)
+     - **Environment**: `Node`
+     - **Build Command**: `npm run install-all`
+     - **Start Command**: `NODE_ENV=production npm start`
+     - **Auto-Deploy**: Enable
+
+4. **Set Environment Variables in Render**
+   - In your Web Service settings, add the following environment variables:
+     - `NODE_ENV`: `production`
+     - `PORT`: `10000` (Render will provide its own port)
+     - `MONGODB_URI`: Your MongoDB Atlas connection string
+     - `JWT_SECRET`: Your secret key for JWT tokens
+     - `RENDER`: `true`
+     - All Firebase configuration variables from your `.env` file
+
+5. **Wait for Deployment**
+   - Render will build and deploy your application
+   - Once deployed, you can access your application at the provided Render URL
+
+### Updating the Deployed Application
+
+To update your deployed application after making changes:
+
+1. Commit and push your changes to GitHub
+   ```bash
+   git add .
+   git commit -m "Your update message"
+   git push
+   ```
+
+2. Render will automatically rebuild and deploy your application if auto-deploy is enabled
+
 ## Environment Variables
 
-### Client (.env in client directory)
-```
-VITE_API_URL=http://localhost:5000/api
-VITE_FIREBASE_API_KEY=your_firebase_api_key
-VITE_FIREBASE_AUTH_DOMAIN=your_firebase_auth_domain
-VITE_FIREBASE_PROJECT_ID=your_firebase_project_id
-VITE_FIREBASE_STORAGE_BUCKET=your_firebase_storage_bucket
-VITE_FIREBASE_MESSAGING_SENDER_ID=your_firebase_messaging_sender_id
-VITE_FIREBASE_APP_ID=your_firebase_app_id
-```
-
-### Server (.env in server directory)
+### Server Environment Variables
 ```
 PORT=5000
 MONGODB_URI=your_mongodb_connection_string
@@ -130,6 +177,20 @@ FIREBASE_CLIENT_ID=your_firebase_client_id
 FIREBASE_AUTH_URI=https://accounts.google.com/o/oauth2/auth
 FIREBASE_TOKEN_URI=https://oauth2.googleapis.com/token
 ```
+
+### Client Environment Variables
+For development, create a `.env.development` file in the client directory:
+```
+VITE_API_URL=http://localhost:5000/api
+VITE_FIREBASE_API_KEY=your_firebase_api_key
+VITE_FIREBASE_AUTH_DOMAIN=your_firebase_auth_domain
+VITE_FIREBASE_PROJECT_ID=your_firebase_project_id
+VITE_FIREBASE_STORAGE_BUCKET=your_firebase_storage_bucket
+VITE_FIREBASE_MESSAGING_SENDER_ID=your_firebase_messaging_sender_id
+VITE_FIREBASE_APP_ID=your_firebase_app_id
+```
+
+For production, a `.env.production` file is already set up to use relative paths.
 
 ## Folder Structure
 
@@ -156,3 +217,5 @@ eduflow/
 │
 └── package.json          # Root package.json for project-wide scripts
 ```
+
+

@@ -5,12 +5,10 @@ import {
   signInWithPopup, 
   signInWithCredential, 
   GoogleAuthProvider, 
-  signOut 
+  signOut as firebaseSignOut 
 } from 'firebase/auth';
 import { auth, googleProvider } from '@/lib/firebase';
-
-// API base URL - can be moved to environment variables later
-const API_BASE_URL = 'http://localhost:5000/api';
+import api, { API_BASE_URL } from '@/lib/api'; // Import both api instance and API_BASE_URL
 
 // Define user roles
 export type UserRole = 'admin' | 'student';
@@ -200,7 +198,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = async () => {
     try {
       // Sign out from Firebase if signed in with Google
-      await signOut(auth);
+      await firebaseSignOut(auth);
       
       // Remove token and user from storage
       localStorage.removeItem('eduflow-token');

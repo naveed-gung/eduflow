@@ -146,7 +146,7 @@ export function AIAssistant() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
-  
+
   // Focus input when chat opens
   useEffect(() => {
     if (isOpen && !isMinimized && activeTab === 'chat') {
@@ -181,13 +181,13 @@ export function AIAssistant() {
   const handleSendMessage = async () => {
     if (!inputValue.trim()) return;
     
-    const userMessage: Message = {
+      const userMessage: Message = {
       id: generateId(),
       content: inputValue,
-      sender: 'user',
-      timestamp: new Date()
-    };
-    
+        sender: 'user',
+        timestamp: new Date()
+      };
+      
     setMessages(prevMessages => [...prevMessages, userMessage]);
     setInputValue('');
     setIsLoading(true);
@@ -257,11 +257,11 @@ export function AIAssistant() {
             id: generateId(),
             content: randomResponse,
             sender: 'ai',
-            timestamp: new Date()
-          };
-          
+          timestamp: new Date()
+        };
+        
           setMessages(prevMessages => [...prevMessages, aiMessage]);
-        }, 1000);
+      }, 1000);
       }
     } catch (error) {
       console.error('Error sending message to AI:', error);
@@ -392,7 +392,7 @@ export function AIAssistant() {
   return (
     <>
       {/* AI Assistant icon that follows mouse partially */}
-      <div 
+      <div
         className={cn(
           "fixed z-50 transition-all duration-300 ease-out",
           isOpen 
@@ -407,13 +407,13 @@ export function AIAssistant() {
       >
         {/* Chat button */}
         {!isOpen && (
-          <Button
-            onClick={() => setIsOpen(true)}
+        <Button
+          onClick={() => setIsOpen(true)}
             className="h-16 w-16 rounded-full shadow-lg group hover:scale-105 transition-all duration-200"
-          >
+        >
             <Bot className="h-7 w-7 group-hover:hidden" />
             <Sparkles className="h-7 w-7 hidden group-hover:block" />
-          </Button>
+        </Button>
         )}
         
         {/* Chat window */}
@@ -427,10 +427,10 @@ export function AIAssistant() {
           )}>
             {/* Chat header */}
             <div className="flex items-center justify-between bg-primary text-primary-foreground px-4 py-3">
-              <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2">
                 <Sparkles className="h-5 w-5" />
                 <h3 className="font-medium">EduFlow Assistant</h3>
-              </div>
+            </div>
               <div className="flex gap-1">
                 {!isMinimized && (
                   <DropdownMenu>
@@ -492,10 +492,10 @@ export function AIAssistant() {
                   onClick={() => setIsOpen(false)}
                 >
                   <X className="h-4 w-4" />
-                </Button>
+          </Button>
               </div>
-            </div>
-            
+        </div>
+        
             {/* Chat content */}
             {!isMinimized && (
               <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
@@ -504,9 +504,9 @@ export function AIAssistant() {
                   <ScrollArea className="flex-1 p-4">
                     <div className="space-y-4">
                       {messages.map((message) => (
-                        <div
-                          key={message.id}
-                          className={cn(
+            <div 
+              key={message.id} 
+              className={cn(
                             "flex max-w-[80%] rounded-lg p-3",
                             message.sender === 'user'
                               ? "ml-auto bg-primary text-primary-foreground"
@@ -514,15 +514,15 @@ export function AIAssistant() {
                           )}
                         >
                           {message.content}
-                        </div>
-                      ))}
+            </div>
+          ))}
                       {isLoading && (
                         <div className="flex bg-muted max-w-[80%] rounded-lg p-3">
                           <Loader2 className="h-5 w-5 animate-spin" />
                         </div>
                       )}
-                      <div ref={messagesEndRef} />
-                    </div>
+          <div ref={messagesEndRef} />
+        </div>
                   </ScrollArea>
                   
                   {/* Suggested questions */}
@@ -547,11 +547,11 @@ export function AIAssistant() {
                   
                   {/* Input area */}
                   <div className="p-4 pt-2 border-t">
-                    <div className="flex gap-2">
+          <div className="flex gap-2">
                       <Input
                         ref={inputRef}
-                        value={inputValue}
-                        onChange={(e) => setInputValue(e.target.value)}
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
                         onKeyDown={handleKeyDown}
                         placeholder="Ask me anything..."
                         className="flex-1"
@@ -565,7 +565,7 @@ export function AIAssistant() {
                         {isLoading ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
                         ) : (
-                          <Send className="h-4 w-4" />
+              <Send className="h-4 w-4" />
                         )}
                       </Button>
                     </div>
@@ -652,8 +652,8 @@ export function AIAssistant() {
                       </Button>
                       <Button onClick={handleSaveAISettings}>
                         Save changes
-                      </Button>
-                    </div>
+            </Button>
+          </div>
                   </div>
                 </TabsContent>
               </Tabs>

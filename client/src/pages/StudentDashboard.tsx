@@ -244,28 +244,28 @@ const StudentDashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         {/* Overall Progress */}
         <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle>Your Learning Progress</CardTitle>
-            <CardDescription>Track your overall course completion</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Overall Completion</span>
-                <span className="text-sm font-medium">{overallProgress}%</span>
-              </div>
+        <CardHeader>
+          <CardTitle>Your Learning Progress</CardTitle>
+          <CardDescription>Track your overall course completion</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">Overall Completion</span>
+              <span className="text-sm font-medium">{overallProgress}%</span>
+            </div>
               <Progress value={overallProgress} className="h-3" />
-              
-              <div className="pt-4 space-y-4">
+            
+            <div className="pt-4 space-y-4">
                 {enrolledCourses.length > 0 ? (
                   enrolledCourses.map(course => (
-                    <div key={course.id}>
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-sm">{course.title}</span>
-                        <span className="text-xs">{course.progress || 0}%</span>
-                      </div>
-                      <Progress value={course.progress || 0} className="h-1.5" />
-                    </div>
+                <div key={course.id}>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-sm">{course.title}</span>
+                    <span className="text-xs">{course.progress || 0}%</span>
+                  </div>
+                  <Progress value={course.progress || 0} className="h-1.5" />
+                </div>
                   ))
                 ) : (
                   <div className="text-center py-6 text-muted-foreground">
@@ -320,9 +320,9 @@ const StudentDashboard = () => {
                 >
                   Browse Courses
                 </Button>
-              </div>
-            </CardContent>
-          </Card>
+          </div>
+        </CardContent>
+      </Card>
         )}
       </div>
       
@@ -372,11 +372,11 @@ const StudentDashboard = () => {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-12">
+            <div className="text-center py-12">
                 <Award className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                 <p className="text-muted-foreground">You haven't earned any certificates yet.</p>
                 <p className="text-sm text-muted-foreground mt-2">Complete a course to earn your first certificate!</p>
-              </div>
+            </div>
             )}
           </TabsContent>
         </Tabs>

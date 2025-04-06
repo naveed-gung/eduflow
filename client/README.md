@@ -100,8 +100,8 @@ This is the frontend application for the EduFlow online learning platform, built
 
 4. Run the development server
    ```bash
-   npm run dev
-   ```
+npm run dev
+```
 
 5. For production build
    ```bash

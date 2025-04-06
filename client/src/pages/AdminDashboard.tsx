@@ -78,7 +78,7 @@ const AdminDashboard = () => {
   const [recentStudents, setRecentStudents] = useState<Student[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [studentCount, setStudentCount] = useState(0);
-
+  
   // Redirect if not logged in or not an admin
   useEffect(() => {
     if (!user) {
@@ -87,7 +87,7 @@ const AdminDashboard = () => {
       navigate('/dashboard/student');
     }
   }, [user, navigate]);
-
+  
   // Fetch courses from API on mount
   useEffect(() => {
     fetchCourses();
@@ -334,74 +334,74 @@ const AdminDashboard = () => {
                       </TableRow>
                     ) : (
                       filteredCourses.slice(0, 5).map((course) => (
-                        <TableRow key={course.id}>
-                          <TableCell className="font-medium">
-                            <div className="flex items-center gap-2">
-                              <div className="w-8 h-8 rounded overflow-hidden bg-muted">
-                                <img 
-                                  src={course.thumbnailUrl} 
-                                  alt={course.title}
-                                  className="w-full h-full object-cover"
-                                />
-                              </div>
-                              <span className="truncate max-w-[150px]">{course.title}</span>
+                      <TableRow key={course.id}>
+                        <TableCell className="font-medium">
+                          <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 rounded overflow-hidden bg-muted">
+                              <img 
+                                src={course.thumbnailUrl} 
+                                alt={course.title}
+                                className="w-full h-full object-cover"
+                              />
                             </div>
-                          </TableCell>
-                          <TableCell className="hidden md:table-cell">{course.category}</TableCell>
-                          <TableCell className="hidden md:table-cell">
-                            <span className={`px-2 py-1 rounded-full text-xs ${
-                              course.isPublished 
-                                ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-500' 
-                                : 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-500'
-                            }`}>
-                              {course.isPublished ? 'Published' : 'Draft'}
-                            </span>
-                          </TableCell>
-                          <TableCell className="text-right">{course.students}</TableCell>
+                            <span className="truncate max-w-[150px]">{course.title}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell">{course.category}</TableCell>
+                        <TableCell className="hidden md:table-cell">
+                          <span className={`px-2 py-1 rounded-full text-xs ${
+                            course.isPublished 
+                              ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-500' 
+                              : 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-500'
+                          }`}>
+                            {course.isPublished ? 'Published' : 'Draft'}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-right">{course.students}</TableCell>
                           <TableCell className="text-right">${course.revenue || 0}</TableCell>
-                          <TableCell className="text-right">
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon">
-                                  <span className="sr-only">Open menu</span>
-                                  <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    className="h-4 w-4"
-                                  >
-                                    <circle cx="12" cy="12" r="1" />
-                                    <circle cx="12" cy="5" r="1" />
-                                    <circle cx="12" cy="19" r="1" />
-                                  </svg>
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                        <TableCell className="text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon">
+                                <span className="sr-only">Open menu</span>
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  className="h-4 w-4"
+                                >
+                                  <circle cx="12" cy="12" r="1" />
+                                  <circle cx="12" cy="5" r="1" />
+                                  <circle cx="12" cy="19" r="1" />
+                                </svg>
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
                                 <DropdownMenuItem onClick={() => handleEditCourse(course)}>
-                                  <FileEdit className="mr-2 h-4 w-4" />
-                                  Edit
-                                </DropdownMenuItem>
+                                <FileEdit className="mr-2 h-4 w-4" />
+                                Edit
+                              </DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => handleViewCourse(course)}>
-                                  <ArrowUpRight className="mr-2 h-4 w-4" />
-                                  View
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
+                                <ArrowUpRight className="mr-2 h-4 w-4" />
+                                View
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
                                 <DropdownMenuItem 
                                   className="text-destructive"
                                   onClick={() => handleDeleteCourse(course)}
                                 >
                                   <Trash2 className="mr-2 h-4 w-4" />
-                                  Delete
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </TableCell>
-                        </TableRow>
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
                       ))
                     )}
                   </TableBody>
@@ -427,7 +427,7 @@ const AdminDashboard = () => {
                 {recentStudents.length > 0 ? (
                   recentStudents.map((student) => (
                     <div key={student.id} className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center font-medium text-lg">
                           {student.name[0]}
                         </div>
