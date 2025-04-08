@@ -47,6 +47,9 @@ api.interceptors.request.use(
     const token = localStorage.getItem('eduflow-token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+      console.log(`[API] Request authenticated: ${config.method?.toUpperCase()} ${config.url}`);
+    } else {
+      console.warn(`[API] Request NOT authenticated: ${config.method?.toUpperCase()} ${config.url}`);
     }
     
     // Log requests in development

@@ -2,9 +2,9 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { ThemeProvider } from "@/context/ThemeProvider";
-import { AuthProvider } from "@/context/AuthProvider";
+import { AuthProvider, useAuth } from "@/context/AuthProvider";
 import { AIAssistant } from "@/components/AIAssistant";
 import { Footer } from "@/components/Footer";
 
@@ -26,6 +26,19 @@ import NotFound from "./pages/NotFound";
 import { MainNav } from "./components/MainNav";
 
 const queryClient = new QueryClient();
+
+// AuthRoute component to protect routes
+const AuthRoute = ({ children }: { children: React.ReactNode }) => {
+  const { isAuthenticated } = useAuth();
+  
+  if (isAuthenticated) {
+    // If user is authenticated, redirect to their dashboard based on role
+    const user = JSON.parse(localStorage.getItem('eduflow-user') || '{}');
+    return <Navigate to={user.role === 'admin' ? '/dashboard/admin' : '/dashboard/student'} replace />;
+  }
+  
+  return <>{children}</>;
+};
 
 // Conditional AI Assistant Component that doesn't render on admin pages
 const ConditionalAIAssistant = () => {
@@ -53,8 +66,16 @@ const App = () => (
                   <Route path="/" element={<Index />} />
                   <Route path="/courses" element={<CoursesPage />} />
                   <Route path="/course-detail/:id" element={<CourseDetailPage />} />
-                  <Route path="/signin" element={<SignInPage />} />
-                  <Route path="/signup" element={<SignUpPage />} />
+                  <Route path="/signin" element={
+                    <AuthRoute>
+                      <SignInPage />
+                    </AuthRoute>
+                  } />
+                  <Route path="/signup" element={
+                    <AuthRoute>
+                      <SignUpPage />
+                    </AuthRoute>
+                  } />
                   <Route path="/dashboard/student" element={<StudentDashboard />} />
                   <Route path="/dashboard/admin" element={<AdminDashboard />} />
                   <Route path="/admin/certificates" element={<AdminCertificatesPage />} />

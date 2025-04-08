@@ -73,16 +73,28 @@ const CourseDetailPage = () => {
         if (response.data.success) {
           setCourse(response.data.course);
           
-          // Check if user is already enrolled
+          // Check if user is already enrolled - add debug logging
+          console.log('Checking enrollment status:', { isAuthenticated, userId: user?.id });
+          
           if (isAuthenticated && user) {
+            try {
             const userResponse = await api.get(`/users/profile`);
             
             if (userResponse.data.success) {
               const enrolledCourseIds = userResponse.data.user.enrolledCourses.map((c: any) => 
                 c.courseId._id || c.courseId
               );
-              setIsEnrolled(enrolledCourseIds.includes(id));
+                
+                console.log('Enrolled courses:', { enrolledCourseIds, currentCourse: id });
+                const isUserEnrolled = enrolledCourseIds.includes(id);
+                setIsEnrolled(isUserEnrolled);
+                console.log('Enrollment status set to:', isUserEnrolled);
+              }
+            } catch (err) {
+              console.error('Error fetching user profile:', err);
             }
+          } else {
+            console.log('User not authenticated, cannot check enrollment');
           }
         } else {
           toast.error('Failed to load course details');
@@ -101,7 +113,9 @@ const CourseDetailPage = () => {
   }, [id, navigate, isAuthenticated, user]);
   
   const handleEnrollCourse = async () => {
-    if (!isAuthenticated) {
+    console.log('Enrollment attempt:', { isAuthenticated, hasUser: !!user });
+    
+    if (!isAuthenticated || !user) {
       toast.error('Please sign in to enroll in this course');
       navigate('/signin');
       return;
@@ -110,7 +124,16 @@ const CourseDetailPage = () => {
     try {
       setIsEnrolling(true);
       
+      // Ensure we have the latest auth token set
+      const token = localStorage.getItem('eduflow-token');
+      if (!token) {
+        toast.error('Authentication error, please sign in again');
+        navigate('/signin');
+        return;
+      }
+      
       // Enroll user in the course
+      console.log('Making enrollment API call...');
       const response = await api.post(`/courses/${id}/enroll`);
       
       if (response.data.success) {

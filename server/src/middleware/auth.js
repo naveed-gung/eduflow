@@ -7,28 +7,56 @@ exports.authenticate = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
     
+    // Log authentication attempt
+    console.log(`Authentication attempt for: ${req.originalUrl}`, { 
+      hasAuthHeader: !!authHeader,
+      method: req.method
+    });
+    
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      console.log('Authentication failed: No Bearer token provided');
       return res.status(401).json({ message: 'Authentication token is required' });
     }
     
     const token = authHeader.split(' ')[1];
     
+    if (!token) {
+      console.log('Authentication failed: Empty token');
+      return res.status(401).json({ message: 'Invalid token format' });
+    }
+    
     // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    
+    if (!decoded || !decoded.id) {
+      console.log('Authentication failed: Invalid token payload');
+      return res.status(401).json({ message: 'Invalid token' });
+    }
     
     // Find user by id
     const user = await User.findById(decoded.id).select('-password');
     
     if (!user) {
+      console.log(`Authentication failed: User not found (ID: ${decoded.id})`);
       return res.status(404).json({ message: 'User not found' });
     }
+    
+    // Authentication successful
+    console.log(`Authentication successful for user: ${user.email} (${user.id})`);
     
     // Attach user to request object
     req.user = user;
     next();
   } catch (error) {
     console.error('Auth middleware error:', error);
-    return res.status(401).json({ message: 'Not authorized, token failed' });
+    
+    if (error.name === 'JsonWebTokenError') {
+      return res.status(401).json({ message: 'Invalid token' });
+    } else if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({ message: 'Token expired' });
+    }
+    
+    return res.status(401).json({ message: 'Not authorized, authentication failed' });
   }
 };
 

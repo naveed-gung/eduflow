@@ -28,6 +28,7 @@ export interface User {
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
+  isAuthenticated: boolean;
   setUser: React.Dispatch<React.SetStateAction<User | null>>;
   login: (email: string, password: string, rememberMe?: boolean) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
@@ -41,6 +42,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const { toast } = useToast();
+  
+  // Compute isAuthenticated from user state
+  const isAuthenticated = !!user;
 
   // Check for user session on mount
   useEffect(() => {
@@ -273,7 +277,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, setUser, login, loginWithGoogle, logout, register }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      isLoading, 
+      isAuthenticated,
+      setUser, 
+      login, 
+      loginWithGoogle, 
+      logout, 
+      register 
+    }}>
       {children}
     </AuthContext.Provider>
   );
