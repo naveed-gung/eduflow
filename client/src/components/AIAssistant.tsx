@@ -244,25 +244,6 @@ export function AIAssistant() {
     }
   };
   
-  // Clear chat history
-  const handleClearChat = () => {
-    setMessages(user ? [] : defaultMessages);
-    
-    // If user is authenticated, also clear server-side chat history
-    if (user) {
-      const token = localStorage.getItem('eduflow-token');
-      if (token) {
-        axios.delete(`${API_BASE_URL}/ai/chat/history`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        }).catch(error => {
-          console.error('Failed to clear chat history on server:', error);
-        });
-      }
-    }
-  };
-  
   // Handle suggestion click
   const handleSuggestionClick = (suggestion: string) => {
     setInputValue(suggestion);
@@ -270,32 +251,42 @@ export function AIAssistant() {
     inputRef.current?.focus();
   };
   
+  // Handle settings dropdown
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  
+  // Handle toggle chat visibility
+  const handleToggleChat = () => {
+    setIsOpen(prev => !prev);
+  };
+  
+  // Clean up API_BASE_URL references with api client
+  const handleClearChat = () => {
+    setMessages(user ? [] : defaultMessages);
+    
+    // If user is authenticated, also clear server-side chat history
+    if (user) {
+      api.delete('/ai/chat/history').catch(error => {
+        console.error('Failed to clear chat history on server:', error);
+      });
+    }
+  };
+  
   // Save AI settings
   const handleSaveAISettings = async () => {
     if (!user) return;
     
     try {
-      const token = localStorage.getItem('eduflow-token');
-      if (!token) {
-        throw new Error('Authentication token not found');
-      }
-      
       const aiPreferences = {
         voiceEnabled,
         theme: aiTheme,
         responseLength
       };
       
-      const response = await axios.put(
-        `${API_BASE_URL}/users/preferences`,
+      const response = await api.put(
+        '/users/preferences',
         { 
           preferences: { 
             ai: aiPreferences 
-          } 
-        },
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`
           }
         }
       );
@@ -309,7 +300,7 @@ export function AIAssistant() {
           }
         }
         toast.success("AI preferences saved");
-        setActiveTab('chat');
+        setIsSettingsOpen(false);
       }
     } catch (error) {
       console.error('Error saving AI settings:', error);
@@ -336,6 +327,30 @@ export function AIAssistant() {
     URL.revokeObjectURL(url);
   };
   
+  // Prevent layout shift when opening dropdown
+  useEffect(() => {
+    const handleSettingsDropdown = () => {
+      if (isSettingsOpen) {
+        // Save the current scrollbar width
+        const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+        // Add padding to body to prevent layout shift
+        if (scrollbarWidth > 0) {
+          document.body.style.paddingRight = `${scrollbarWidth}px`;
+        }
+      } else {
+        // Reset padding
+        document.body.style.paddingRight = '';
+      }
+    };
+    
+    handleSettingsDropdown();
+    
+    return () => {
+      // Cleanup
+      document.body.style.paddingRight = '';
+    };
+  }, [isSettingsOpen]);
+  
   // Determine if we should show the AI assistant based on user preferences
   const shouldShowAssistant = () => {
     if (!user || !user.preferences) return true;
@@ -348,30 +363,13 @@ export function AIAssistant() {
   
   return (
     <>
-      {/* Main chatbot button */}
-      <Button
-        className={cn(
-          'fixed bottom-6 right-6 z-40 h-10 w-10 rounded-full shadow-lg',
-          isOpen ? 'bg-primary/90 hover:bg-primary/80' : 'bg-primary hover:bg-primary/90'
-        )}
-        onClick={() => setIsOpen(!isOpen)}
-        size="icon"
-        aria-label={isOpen ? 'Close AI assistant' : 'Open AI assistant'}
-      >
-        {isOpen ? (
-          <X className="h-4 w-4" />
-        ) : (
-          <MessageSquare className="h-4 w-4" />
-        )}
-      </Button>
-      
       {/* AI chatbot panel */}
       {isOpen && (
         <div
           className={cn(
-            'fixed z-30 bg-card border-l border-border shadow-xl transition-all duration-300 ease-in-out',
-            isMinimized ? 'w-auto h-auto bottom-20 right-6 rounded-md' : 'bottom-0 right-0 top-[80px] flex flex-col',
-            isMinimized ? '' : 'w-[90vw] sm:w-[400px] md:w-[450px] lg:w-[500px] h-[calc(100vh-80px)]'
+            'fixed z-30 bg-card border border-border shadow-xl transition-all duration-300 ease-in-out rounded-xl',
+            isMinimized ? 'w-auto h-auto bottom-20 right-6 rounded-md' : 'bottom-6 right-6 top-[80px] flex flex-col',
+            isMinimized ? '' : 'w-[90vw] sm:w-[380px] md:w-[420px] lg:w-[460px] h-[calc(100vh-120px)]'
           )}
         >
           {isMinimized ? (
@@ -388,66 +386,133 @@ export function AIAssistant() {
           ) : (
             // Full view
             <>
-              <header className="border-b p-2 flex items-center justify-between">
+              <header className="border-b p-2 flex items-center justify-between rounded-t-xl">
                 <div className="flex items-center">
                   <Button variant="ghost" size="icon" className="mr-2" onClick={() => setIsMinimized(true)}>
                     <Minimize2 className="h-4 w-4" />
-        </Button>
+                  </Button>
                   <div className="flex items-center">
                     <Bot className="h-4 w-4 mr-2 text-primary" />
                     <span className="font-medium text-sm">EduFlow AI Assistant</span>
-      </div>
-            </div>
+                  </div>
+                </div>
                 <div className="flex items-center">
-                  <DropdownMenu>
+                  <DropdownMenu open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="icon" className="h-7 w-7">
                         <Settings className="h-3 w-3" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => setActiveTab('settings')}>
-                        <Settings className="h-3 w-3 mr-2" />
-                        <span>AI Settings</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={handleClearChat}>
+                    <DropdownMenuContent align="end" className="p-0 z-50" sideOffset={5}>
+                      <DropdownMenuItem onClick={handleClearChat} className="cursor-pointer">
                         <RefreshCw className="h-3 w-3 mr-2" />
                         <span>Clear Chat</span>
                       </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <div className="p-3 w-64 max-h-80 overflow-auto">
+                        <h3 className="text-xs font-medium mb-2">AI Settings</h3>
+                        
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <div className="space-y-0.5">
+                              <Label className="text-xs">Voice Responses</Label>
+                              <p className="text-xs text-muted-foreground">
+                                Enable voice output
+                              </p>
+                            </div>
+                            <Switch
+                              checked={voiceEnabled}
+                              onCheckedChange={setVoiceEnabled}
+                            />
+                          </div>
+                          
+                          <div className="space-y-1">
+                            <Label className="text-xs">AI Appearance</Label>
+                            <div className="grid grid-cols-3 gap-1">
+                              {['modern', 'classic', 'minimal'].map((theme) => (
+                                <Button
+                                  key={theme}
+                                  variant={aiTheme === theme ? "default" : "outline"}
+                                  size="sm"
+                                  className="text-xs capitalize h-7 px-1"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setAiTheme(theme);
+                                  }}
+                                >
+                                  {theme}
+                                </Button>
+                              ))}
+                            </div>
+                          </div>
+                          
+                          <div className="space-y-1">
+                            <Label className="text-xs">Response Length</Label>
+                            <div className="grid grid-cols-3 gap-1">
+                              {['concise', 'balanced', 'detailed'].map((length) => (
+                                <Button
+                                  key={length}
+                                  variant={responseLength === length ? "default" : "outline"}
+                                  size="sm"
+                                  className="text-xs capitalize h-7 px-1"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setResponseLength(length);
+                                  }}
+                                >
+                                  {length}
+                                </Button>
+                              ))}
+                            </div>
+                          </div>
+                          
+                          <Button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleSaveAISettings();
+                            }}
+                            size="sm"
+                            className="w-full text-xs mt-2"
+                          >
+                            Save Settings
+                          </Button>
+                        </div>
+                      </div>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={handleExportChat} className="cursor-pointer">
+                        <Download className="h-3 w-3 mr-2" />
+                        <span>Export Chat</span>
+                      </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
-                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setIsOpen(false)}>
+                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleToggleChat}>
                     <X className="h-3 w-3" />
-          </Button>
-        </div>
+                  </Button>
+                </div>
               </header>
               
               <div className="relative flex-1">
                 {/* Background logo */}
-                <div className="absolute inset-0 opacity-5 pointer-events-none">
-                  <img 
-                    src="/favicon.svg" 
-                    alt="EduFlow Logo" 
-                    className="w-32 h-32 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
-                  />
+                <div className="absolute inset-0 opacity-5 pointer-events-none flex items-center justify-center">
+                  <div className="relative">
+                    <img 
+                      src="/favicon.svg" 
+                      alt="EduFlow Logo" 
+                      className="w-24 h-24 opacity-70"
+                    />
+                    <div className="absolute inset-0 rounded-full filter blur-md bg-primary/10 -z-10 shadow-lg shadow-primary/20"></div>
+                  </div>
                 </div>
                 
-                <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col h-full">
-                  <TabsList className="px-2 pt-2 grid grid-cols-2 w-full">
-                    <TabsTrigger value="chat" className="text-xs">Chat</TabsTrigger>
-                    <TabsTrigger value="settings" className="text-xs">Settings</TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="chat" className="flex-1 flex flex-col p-0 m-0 data-[state=active]:flex data-[state=active]:flex-col">
+                <div className="flex-1 flex flex-col h-full">
                   {/* Chat messages */}
-                    <ScrollArea className="flex-1 p-2">
-                      <div className="space-y-3">
+                  <ScrollArea className="flex-1 p-2">
+                    <div className="space-y-3">
                       {messages.map((message) => (
-            <div 
-              key={message.id} 
-              className={cn(
-                              "flex flex-col max-w-[85%] p-2 rounded-lg text-sm",
+                        <div 
+                          key={message.id} 
+                          className={cn(
+                            "flex flex-col max-w-[85%] p-2 rounded-lg text-sm",
                             message.sender === 'user'
                               ? "ml-auto bg-primary text-primary-foreground"
                               : "mr-auto bg-muted text-foreground"
@@ -457,15 +522,15 @@ export function AIAssistant() {
                           <span className="text-xs opacity-70 mt-1 text-right">
                             {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </span>
-            </div>
-          ))}
+                        </div>
+                      ))}
                     </div>
-          <div ref={messagesEndRef} />
+                    <div ref={messagesEndRef} />
                   </ScrollArea>
                   
                   {/* Suggested prompts */}
                   {messages.length <= 2 && !isLoading && (
-                      <div className="p-2 border-t">
+                    <div className="p-2 border-t">
                       <p className="text-xs text-muted-foreground mb-2">Suggested questions:</p>
                       <div className="flex flex-wrap gap-2">
                         {contextualPrompts.slice(0, 3).map((prompt, index) => (
@@ -480,119 +545,52 @@ export function AIAssistant() {
                           </Button>
                         ))}
                       </div>
-        </div>
+                    </div>
                   )}
                   
                   {/* Input area */}
-                    <div className="p-2 border-t flex items-end gap-2">
+                  <div className="p-2 border-t flex items-end gap-2 rounded-b-xl">
                     <div className="flex-1">
                       <Input
                         ref={inputRef}
                         placeholder="Type your message..."
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
+                        value={inputValue}
+                        onChange={(e) => setInputValue(e.target.value)}
                         onKeyDown={handleKeyDown}
                         disabled={isLoading}
-                          className="min-h-9 py-1 resize-none text-sm"
+                        className="min-h-9 py-1 resize-none text-sm"
                       />
                     </div>
                     <Button
                       size="icon"
                       disabled={isLoading || !inputValue.trim()}
                       onClick={handleSendMessage}
-                        className="flex-shrink-0 h-9 w-9"
+                      className="flex-shrink-0 h-9 w-9"
                     >
                       {isLoading ? (
-                          <Loader2 className="h-3 w-3 animate-spin" />
+                        <Loader2 className="h-3 w-3 animate-spin" />
                       ) : (
-                          <Send className="h-3 w-3" />
+                        <Send className="h-3 w-3" />
                       )}
                     </Button>
                   </div>
-                </TabsContent>
-                
-                <TabsContent 
-                  value="settings" 
-                    className="py-0 px-2 sm:px-4 data-[state=active]:flex data-[state=active]:flex-col"
-                >
-                  <ScrollArea className="flex-1">
-                      <div className="py-3 space-y-4">
-                        <h3 className="text-sm font-medium">AI Assistant Settings</h3>
-                      
-                        <div className="space-y-3">
-                        <div className="flex items-center justify-between">
-                          <div className="space-y-0.5">
-                              <Label className="text-xs">Voice Responses</Label>
-                            <p className="text-xs text-muted-foreground">
-                              Enable voice output for AI responses
-                            </p>
-                          </div>
-                          <Switch
-                            checked={voiceEnabled}
-                            onCheckedChange={setVoiceEnabled}
-                          />
-                        </div>
-                        
-                        <div className="space-y-2">
-                            <Label className="text-xs">AI Appearance</Label>
-                          <div className="grid grid-cols-3 gap-2">
-                            {['modern', 'classic', 'minimal'].map((theme) => (
-                              <Button
-                                key={theme}
-                                variant={aiTheme === theme ? "default" : "outline"}
-                                size="sm"
-                                className="text-xs capitalize"
-                                onClick={() => setAiTheme(theme)}
-                              >
-                                {theme}
-                              </Button>
-                            ))}
-                          </div>
-                        </div>
-                        
-                        <div className="space-y-2">
-                            <Label className="text-xs">Response Length</Label>
-                          <div className="grid grid-cols-3 gap-2">
-                            {['concise', 'balanced', 'detailed'].map((length) => (
-                              <Button
-                                key={length}
-                                variant={responseLength === length ? "default" : "outline"}
-                                size="sm"
-                                className="text-xs capitalize"
-                                onClick={() => setResponseLength(length)}
-                              >
-                                {length}
-                              </Button>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                      
-                        <div className="pt-3 flex flex-col sm:flex-row gap-2 justify-end">
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={() => setActiveTab('chat')}
-                            className="order-2 sm:order-1 text-xs"
-                        >
-                          Cancel
-                        </Button>
-                        <Button 
-                          onClick={handleSaveAISettings}
-                          size="sm"
-                            className="order-1 sm:order-2 text-xs"
-                        >
-                          Save Settings
-            </Button>
-          </div>
-                    </div>
-                  </ScrollArea>
-                </TabsContent>
-              </Tabs>
+                </div>
               </div>
             </>
           )}
         </div>
+      )}
+      
+      {/* Chat toggle button */}
+      {!isOpen && (
+        <Button
+          className="fixed bottom-6 right-6 z-40 h-10 w-10 rounded-full shadow-lg bg-primary hover:bg-primary/90"
+          onClick={handleToggleChat}
+          size="icon"
+          aria-label="Open AI assistant"
+        >
+          <MessageSquare className="h-4 w-4" />
+        </Button>
       )}
       
       {/* Tooltip when hovering over elements */}
@@ -606,7 +604,7 @@ export function AIAssistant() {
         >
           {hoverElement.closest('.course-card') && "Ask me about this course!"}
           {hoverElement.closest('[data-ai-highlight="true"]') && "Need help with this? Ask me!"}
-      </div>
+        </div>
       )}
     </>
   );
