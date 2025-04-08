@@ -201,7 +201,11 @@ const CourseDetailPage = () => {
       toast.error('Please enroll in the course to access the video content');
       return;
     }
-    setSelectedVideo({ url: videoUrl, title });
+    
+    // For demonstration purposes, use the provided Google Drive video link if no video URL is provided
+    const finalVideoUrl = videoUrl || 'https://drive.google.com/file/d/1u_6qzgOTrIEbXVh6X9VC2O4WQjFNfFrt/view?usp=drive_link';
+    
+    setSelectedVideo({ url: finalVideoUrl, title });
   };
   
   if (isLoading) {

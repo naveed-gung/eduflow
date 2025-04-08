@@ -390,12 +390,12 @@ export function AIAssistant() {
                 <div className="flex items-center">
                   <Button variant="ghost" size="icon" className="mr-2" onClick={() => setIsMinimized(true)}>
                     <Minimize2 className="h-4 w-4" />
-                  </Button>
+        </Button>
                   <div className="flex items-center">
                     <Bot className="h-4 w-4 mr-2 text-primary" />
                     <span className="font-medium text-sm">EduFlow AI Assistant</span>
-                  </div>
-                </div>
+      </div>
+            </div>
                 <div className="flex items-center">
                   <DropdownMenu open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
                     <DropdownMenuTrigger asChild>
@@ -487,8 +487,8 @@ export function AIAssistant() {
                   </DropdownMenu>
                   <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleToggleChat}>
                     <X className="h-3 w-3" />
-                  </Button>
-                </div>
+          </Button>
+        </div>
               </header>
               
               <div className="relative flex-1">
@@ -509,9 +509,9 @@ export function AIAssistant() {
                   <ScrollArea className="flex-1 p-2">
                     <div className="space-y-3">
                       {messages.map((message) => (
-                        <div 
-                          key={message.id} 
-                          className={cn(
+            <div 
+              key={message.id} 
+              className={cn(
                             "flex flex-col max-w-[85%] p-2 rounded-lg text-sm",
                             message.sender === 'user'
                               ? "ml-auto bg-primary text-primary-foreground"
@@ -522,10 +522,10 @@ export function AIAssistant() {
                           <span className="text-xs opacity-70 mt-1 text-right">
                             {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </span>
-                        </div>
-                      ))}
+            </div>
+          ))}
                     </div>
-                    <div ref={messagesEndRef} />
+          <div ref={messagesEndRef} />
                   </ScrollArea>
                   
                   {/* Suggested prompts */}
@@ -545,7 +545,7 @@ export function AIAssistant() {
                           </Button>
                         ))}
                       </div>
-                    </div>
+        </div>
                   )}
                   
                   {/* Input area */}
@@ -554,8 +554,8 @@ export function AIAssistant() {
                       <Input
                         ref={inputRef}
                         placeholder="Type your message..."
-                        value={inputValue}
-                        onChange={(e) => setInputValue(e.target.value)}
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
                         onKeyDown={handleKeyDown}
                         disabled={isLoading}
                         className="min-h-9 py-1 resize-none text-sm"
@@ -574,8 +574,8 @@ export function AIAssistant() {
                       )}
                     </Button>
                   </div>
-                </div>
-              </div>
+          </div>
+                    </div>
             </>
           )}
         </div>
@@ -604,7 +604,7 @@ export function AIAssistant() {
         >
           {hoverElement.closest('.course-card') && "Ask me about this course!"}
           {hoverElement.closest('[data-ai-highlight="true"]') && "Need help with this? Ask me!"}
-        </div>
+      </div>
       )}
     </>
   );

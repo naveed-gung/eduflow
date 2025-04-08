@@ -16,11 +16,24 @@ export function VideoPlayer({ isOpen, onClose, videoUrl, title }: VideoPlayerPro
     // If it's already an embed URL, return as is
     if (url.includes('embed')) return url;
     
-    // Extract file ID from Google Drive URL
-    const fileId = url.match(/[-\w]{25,}/);
-    if (!fileId) return url;
+    // Handle specific Google Drive URL format
+    if (url.includes('drive.google.com/file/d/')) {
+      // Extract file ID using regex
+      const fileIdMatch = url.match(/\/d\/([^/]+)/);
+      if (fileIdMatch && fileIdMatch[1]) {
+        return `https://drive.google.com/file/d/${fileIdMatch[1]}/preview`;
+      }
+    }
     
-    return `https://drive.google.com/file/d/${fileId[0]}/preview`;
+    // For URLs with a more complex format
+    const googleDriveIdRegex = /[-\w]{25,}/;
+    const match = url.match(googleDriveIdRegex);
+    if (match) {
+      return `https://drive.google.com/file/d/${match[0]}/preview`;
+    }
+    
+    // If no Google Drive pattern is found, return the original URL
+    return url;
   };
 
   return (

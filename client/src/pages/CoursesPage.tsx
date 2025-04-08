@@ -26,38 +26,6 @@ interface CourseType {
   isEnrolled?: boolean;
 }
 
-// Featured courses section with a few featured courses
-const FeaturedCourses = ({ courses }: { courses: CourseType[] }) => {
-  const [featuredCourses, setFeaturedCourses] = useState<CourseType[]>([]);
-  
-  // Get 4 random courses for the featured section and shuffle them
-  useEffect(() => {
-    if (courses.length > 0) {
-      // Create a copy of courses to avoid mutating the original array
-      const shuffledCourses = [...courses]
-        .sort(() => Math.random() - 0.5) // Randomly shuffle
-        .slice(0, 4); // Take first 4 courses
-      
-      setFeaturedCourses(shuffledCourses);
-    }
-  }, [courses]);
-
-  if (featuredCourses.length === 0) {
-    return null;
-  }
-
-  return (
-    <div className="container mb-12">
-      <h2 className="text-2xl font-semibold mb-6">Featured Courses</h2>
-      <CourseGrid 
-        courses={featuredCourses} 
-        searchable={false}
-        showProgress={false} 
-      />
-    </div>
-  );
-};
-
 const CoursesPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [courses, setCourses] = useState<CourseType[]>([]);
@@ -209,11 +177,6 @@ const CoursesPage = () => {
         </div>
       </div>
       
-      {/* Featured Courses */}
-      {!isLoading && courses.length > 0 && (
-        <FeaturedCourses courses={courses} />
-      )}
-      
       {/* Search Bar */}
       <div className="container mt-8">
         <div className="relative mb-6 max-w-xl mx-auto">
@@ -248,7 +211,6 @@ const CoursesPage = () => {
         <CourseGrid 
             courses={courses}
             searchable={false} // We're handling search at the page level
-            showProgress={false} // Only show progress in student dashboard
           />
         )}
         

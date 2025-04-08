@@ -247,7 +247,7 @@ router.get('/test/create-ml-course', async (req, res) => {
               type: 'video',
               content: 'Introduction to machine learning and its applications',
               duration: 15,
-              videoUrl: 'https://youtu.be/NQH6Wn0jhWM',
+              videoUrl: 'https://drive.google.com/file/d/1u_6qzgOTrIEbXVh6X9VC2O4WQjFNfFrt/view?usp=drive_link',
               order: 1
             },
             {
@@ -255,7 +255,7 @@ router.get('/test/create-ml-course', async (req, res) => {
               type: 'video',
               content: 'Understanding different machine learning paradigms',
               duration: 20,
-              videoUrl: 'https://youtu.be/1AuYOCgUuHQ',
+              videoUrl: 'https://drive.google.com/file/d/1u_6qzgOTrIEbXVh6X9VC2O4WQjFNfFrt/view?usp=drive_link',
               order: 2
             }
           ]
@@ -270,7 +270,7 @@ router.get('/test/create-ml-course', async (req, res) => {
               type: 'video',
               content: 'Working with numerical data and data frames',
               duration: 25,
-              videoUrl: 'https://youtu.be/QUT1VHiLmmQ',
+              videoUrl: 'https://drive.google.com/file/d/1u_6qzgOTrIEbXVh6X9VC2O4WQjFNfFrt/view?usp=drive_link',
               order: 1
             },
             {
@@ -278,7 +278,7 @@ router.get('/test/create-ml-course', async (req, res) => {
               type: 'video',
               content: 'Creating effective visualizations for data analysis',
               duration: 20,
-              videoUrl: 'https://youtu.be/DAQNHzOcO5A',
+              videoUrl: 'https://drive.google.com/file/d/1u_6qzgOTrIEbXVh6X9VC2O4WQjFNfFrt/view?usp=drive_link',
               order: 2
             }
           ]
