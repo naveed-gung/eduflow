@@ -19,6 +19,7 @@ export interface CourseProps {
   isNew?: boolean;
   isEnrolled?: boolean;
   showProgress?: boolean;
+  isCompleted?: boolean;
 }
 
 interface CourseCardProps {
@@ -36,6 +37,9 @@ export function CourseCard({
   className,
   showProgress = false 
 }: CourseCardProps) {
+  // Determine if the course is completed based on the progress
+  const isCompleted = course.isCompleted || (course.progress === 100);
+
   if (loading) {
     return (
       <div className={cn(
@@ -73,16 +77,21 @@ export function CourseCard({
       )}
       data-title={course.title}
     >
-      {course.isEnrolled && (
-        <div className="absolute top-0 left-0 right-0 bg-primary text-primary-foreground text-xs font-medium py-1 z-10 flex items-center justify-center">
+      {isCompleted ? (
+        <div className="absolute top-0 left-0 right-0 bg-green-500 text-white text-xs font-medium py-1 z-10 flex items-center justify-center">
           <CheckCircle className="h-3 w-3 mr-1" />
+          Completed
+        </div>
+      ) : course.isEnrolled && (
+        <div className="absolute top-0 left-0 right-0 bg-primary text-primary-foreground text-xs font-medium py-1 z-10 flex items-center justify-center">
+          <BookOpen className="h-3 w-3 mr-1" />
           Currently Enrolled
         </div>
       )}
       <div className={cn(
         "relative overflow-hidden",
         variant === 'horizontal' ? "w-full sm:w-1/3 h-40 sm:h-auto" : "w-full h-40 sm:h-48",
-        course.isEnrolled ? "pt-5" : ""
+        (course.isEnrolled || isCompleted) ? "pt-5" : ""
       )}>
         <img 
           src={course.thumbnailUrl} 

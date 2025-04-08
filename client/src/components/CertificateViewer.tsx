@@ -108,17 +108,17 @@ export function CertificateViewer({ isOpen, onClose, certificate, userName }: Ce
               <Award className="h-16 w-16 text-primary" />
             </div>
             <h1 className="text-3xl font-bold text-primary mb-2">Certificate of Completion</h1>
-            <p className="text-lg text-muted-foreground">This certifies that</p>
-            <h2 className="text-2xl font-bold my-4">{userName}</h2>
-            <p className="text-lg text-muted-foreground">has successfully completed the course</p>
-            <h3 className="text-xl font-bold mt-4 mb-2">{courseName}</h3>
-            <p className="text-lg text-muted-foreground">on {formattedDate}</p>
+            <p className="text-lg text-gray-700">This certifies that</p>
+            <h2 className="text-2xl font-bold my-4 text-gray-900">{userName}</h2>
+            <p className="text-lg text-gray-700">has successfully completed the course</p>
+            <h3 className="text-xl font-bold mt-4 mb-2 text-gray-800">{courseName}</h3>
+            <p className="text-lg text-gray-700">on {formattedDate}</p>
           </div>
           
-          <div className="flex justify-between items-end pt-6 mt-8 border-t">
+          <div className="flex justify-between items-end pt-6 mt-8 border-t border-gray-300">
             <div>
-              <p className="text-sm font-medium">Certificate ID:</p>
-              <p className="text-xs font-mono">{certificate.certificateNumber}</p>
+              <p className="text-sm font-medium text-gray-800">Certificate ID:</p>
+              <p className="text-xs font-mono text-gray-700">{certificate.certificateNumber}</p>
               <Link 
                 to={`/verify-certificate?id=${certificate.certificateNumber}`}
                 className="text-xs text-primary flex items-center mt-1 hover:underline"
@@ -130,9 +130,9 @@ export function CertificateViewer({ isOpen, onClose, certificate, userName }: Ce
               </Link>
             </div>
             <div className="text-right">
-              <p className="text-sm font-medium">Verified by</p>
-              <p className="text-lg font-bold">EduFlow</p>
-              <p className="text-xs text-muted-foreground">{currentDate}</p>
+              <p className="text-sm font-medium text-gray-800">Verified by</p>
+              <p className="text-lg font-bold text-gray-900">EduFlow</p>
+              <p className="text-xs text-gray-700">{currentDate}</p>
             </div>
           </div>
         </div>

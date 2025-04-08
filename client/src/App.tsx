@@ -21,6 +21,7 @@ import CertificateVerifierPage from "./pages/CertificateVerifierPage";
 import ProfilePage from "./pages/ProfilePage";
 import SettingsPage from "./pages/SettingsPage";
 import NotFound from "./pages/NotFound";
+import StudentCertificatesPage from './pages/StudentCertificatesPage';
 
 // Layout components
 import { MainNav } from "./components/MainNav";
@@ -82,6 +83,7 @@ const App = () => (
                   <Route path="/verify-certificate" element={<CertificateVerifierPage />} />
                   <Route path="/profile/:role" element={<ProfilePage />} />
                   <Route path="/settings" element={<SettingsPage />} />
+                  <Route path="/certificates" element={<StudentCertificatesPage />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </main>

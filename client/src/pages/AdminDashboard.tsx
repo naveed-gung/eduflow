@@ -16,7 +16,10 @@ import {
   Award,
   Trash2,
   MoreHorizontal,
-  Eye
+  Eye,
+  TrendingUp,
+  BarChart2,
+  PieChart as PieChartIcon
 } from 'lucide-react';
 import { 
   Table,
@@ -42,6 +45,9 @@ import { toast } from 'sonner';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import api from '@/lib/api';  // Import the API client
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Progress } from "@/components/ui/progress";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { BookOpen } from 'lucide-react';
 
 // Student interface
 interface Student {
@@ -79,6 +85,14 @@ const AdminDashboard = () => {
   const [recentStudents, setRecentStudents] = useState<Student[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [studentCount, setStudentCount] = useState(0);
+  const [stats, setStats] = useState({
+    totalStudents: 0,
+    totalCourses: 0,
+    totalCertificates: 0,
+    completionRate: 0,
+    coursePerformance: [],
+    categoryDistribution: []
+  });
   
   // Redirect if not logged in or not an admin
   useEffect(() => {
@@ -208,6 +222,30 @@ const AdminDashboard = () => {
       )
     : courses;
 
+  // Fetch admin dashboard data
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setIsLoading(true);
+        const response = await api.get('/admin/dashboard-stats');
+        
+        if (response.data.success) {
+          setStats(response.data.stats);
+        }
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+        toast.error('Failed to fetch dashboard data');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
+  // Colors for category distribution chart
+  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
+
   return (
     <div className="min-h-screen pb-16">
       {/* Dashboard Header */}
@@ -240,8 +278,135 @@ const AdminDashboard = () => {
       
       <div className="container mt-6 sm:mt-8">
         {/* Stats Overview */}
-        <DashboardStats role="admin" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BookOpen className="h-5 w-5" />
+                Total Courses
+              </CardTitle>
+              <CardDescription>Total number of courses</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.totalCourses}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                Total Students
+              </CardTitle>
+              <CardDescription>Total number of students</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.totalStudents}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Award className="h-5 w-5" />
+                Total Certificates
+              </CardTitle>
+              <CardDescription>Total number of certificates issued</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.totalCertificates}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5" />
+                Completion Rate
+              </CardTitle>
+              <CardDescription>Overall course completion rate across all students</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.completionRate}%</div>
+            </CardContent>
+          </Card>
+        </div>
         
+        {/* Completion Rate */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5" />
+              Completion Rate
+            </CardTitle>
+            <CardDescription>Overall course completion rate across all students</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Overall Completion Rate</span>
+                <span className="text-sm font-medium">{stats.completionRate}%</span>
+              </div>
+              <Progress value={stats.completionRate} className="h-3" />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Course Performance */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BarChart2 className="h-5 w-5" />
+              Course Performance
+            </CardTitle>
+            <CardDescription>Performance metrics for each course</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={stats.coursePerformance}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="title" />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="completionRate" fill="#8884d8" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Category Distribution */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <PieChartIcon className="h-5 w-5" />
+              Category Distribution
+            </CardTitle>
+            <CardDescription>Distribution of courses across categories</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={stats.categoryDistribution}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {stats.categoryDistribution.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mt-6">
           {/* Course Management */}
           <Card className="lg:col-span-2">

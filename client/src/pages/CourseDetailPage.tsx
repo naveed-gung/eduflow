@@ -61,6 +61,7 @@ const CourseDetailPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isEnrolling, setIsEnrolling] = useState(false);
   const [isEnrolled, setIsEnrolled] = useState(false);
+  const [isCompleted, setIsCompleted] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState<{ url: string; title: string } | null>(null);
   
   useEffect(() => {
@@ -81,14 +82,22 @@ const CourseDetailPage = () => {
             const userResponse = await api.get(`/users/profile`);
             
             if (userResponse.data.success) {
-              const enrolledCourseIds = userResponse.data.user.enrolledCourses.map((c: any) => 
+              const enrolledCourses = userResponse.data.user.enrolledCourses || [];
+              const enrolledCourseIds = enrolledCourses.map((c: any) => 
                 c.courseId._id || c.courseId
               );
                 
-                console.log('Enrolled courses:', { enrolledCourseIds, currentCourse: id });
-                const isUserEnrolled = enrolledCourseIds.includes(id);
-                setIsEnrolled(isUserEnrolled);
-                console.log('Enrollment status set to:', isUserEnrolled);
+              console.log('Enrolled courses:', { enrolledCourseIds, currentCourse: id });
+              const enrolledCourse = enrolledCourses.find((c: any) => 
+                (c.courseId._id || c.courseId) === id
+              );
+              
+              const isUserEnrolled = !!enrolledCourse;
+              const isUserCompleted = enrolledCourse && enrolledCourse.progress === 100;
+              
+              setIsEnrolled(isUserEnrolled);
+              setIsCompleted(isUserCompleted);
+              console.log('Enrollment status set to:', { isUserEnrolled, isUserCompleted });
               }
             } catch (err) {
               console.error('Error fetching user profile:', err);
@@ -151,6 +160,7 @@ const CourseDetailPage = () => {
             const completeResponse = await api.put(`/courses/complete/${id}`);
             
             if (completeResponse.data.success) {
+              setIsCompleted(true);
               toast.success('Course marked as completed! Certificate generated.');
               
               // Refresh user data
@@ -277,9 +287,9 @@ const CourseDetailPage = () => {
               
               <div className="mt-4 sm:mt-6">
                 {isEnrolled ? (
-                  <Button className="w-full sm:w-auto" disabled>
+                  <Button className={`w-full sm:w-auto ${isCompleted ? 'bg-green-500 hover:bg-green-600' : ''}`} disabled>
                     <CheckCircle className="mr-2 h-4 w-4" />
-                    Enrolled
+                    {isCompleted ? 'Completed' : 'Enrolled'}
                   </Button>
                 ) : (
                   <Button 

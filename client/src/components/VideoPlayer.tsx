@@ -13,15 +13,23 @@ interface VideoPlayerProps {
 export function VideoPlayer({ isOpen, onClose, videoUrl, title }: VideoPlayerProps) {
   // Convert Google Drive URL to embed URL
   const getEmbedUrl = (url: string) => {
-    // If it's already an embed URL, return as is
-    if (url.includes('embed')) return url;
+    console.log('Original video URL:', url);
     
-    // Handle specific Google Drive URL format
+    // If it's already an embed URL, return as is
+    if (url.includes('embed')) {
+      console.log('Already an embed URL, returning as is');
+      return url;
+    }
+    
+    // Handle Google Drive URL format - this is the most common format
     if (url.includes('drive.google.com/file/d/')) {
       // Extract file ID using regex
       const fileIdMatch = url.match(/\/d\/([^/]+)/);
       if (fileIdMatch && fileIdMatch[1]) {
-        return `https://drive.google.com/file/d/${fileIdMatch[1]}/preview`;
+        const fileId = fileIdMatch[1].split('/')[0].split('?')[0]; // Clean up the ID
+        const embedUrl = `https://drive.google.com/file/d/${fileId}/preview`;
+        console.log('Converted Google Drive URL to:', embedUrl);
+        return embedUrl;
       }
     }
     
@@ -29,12 +37,24 @@ export function VideoPlayer({ isOpen, onClose, videoUrl, title }: VideoPlayerPro
     const googleDriveIdRegex = /[-\w]{25,}/;
     const match = url.match(googleDriveIdRegex);
     if (match) {
-      return `https://drive.google.com/file/d/${match[0]}/preview`;
+      const embedUrl = `https://drive.google.com/file/d/${match[0]}/preview`;
+      console.log('Converted Google Drive URL (complex format) to:', embedUrl);
+      return embedUrl;
     }
     
-    // If no Google Drive pattern is found, return the original URL
+    // For youtube videos, don't change anything
+    if (url.includes('youtube.com') || url.includes('youtu.be')) {
+      console.log('YouTube URL detected, returning as is');
+      return url;
+    }
+    
+    // If no pattern is found, return the original URL
+    console.log('No matching pattern found, returning original URL');
     return url;
   };
+  
+  // Get the embed URL
+  const embedUrl = getEmbedUrl(videoUrl);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -49,7 +69,7 @@ export function VideoPlayer({ isOpen, onClose, videoUrl, title }: VideoPlayerPro
             <X className="h-4 w-4" />
           </Button>
           <iframe
-            src={getEmbedUrl(videoUrl)}
+            src={embedUrl}
             title={title}
             className="w-full h-full"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
