@@ -114,6 +114,8 @@ const CourseDetailPage = () => {
   
   const handleEnrollCourse = async () => {
     console.log('Enrollment attempt:', { isAuthenticated, hasUser: !!user });
+    console.log('Course ID for enrollment:', id);
+    console.log('API base URL:', api.defaults.baseURL);
     
     if (!isAuthenticated || !user) {
       toast.error('Please sign in to enroll in this course');
@@ -132,7 +134,7 @@ const CourseDetailPage = () => {
         return;
       }
       
-      // Enroll user in the course
+      // Enroll user in the course - fixed endpoint format
       console.log('Making enrollment API call...');
       const response = await api.post(`/courses/${id}/enroll`);
       
@@ -145,8 +147,8 @@ const CourseDetailPage = () => {
         
         setTimeout(async () => {
           try {
-            // Mark the course as completed
-            const completeResponse = await api.post(`/courses/${id}/complete`);
+            // Mark the course as completed - use the correct endpoint format
+            const completeResponse = await api.put(`/courses/complete/${id}`);
             
             if (completeResponse.data.success) {
               toast.success('Course marked as completed! Certificate generated.');
@@ -171,6 +173,7 @@ const CourseDetailPage = () => {
             }
           } catch (error) {
             console.error('Error completing course:', error);
+            toast.error('Could not mark course as completed. Please try again later.');
           }
         }, 10 * 1000); // 10 seconds
       } else {
@@ -178,7 +181,16 @@ const CourseDetailPage = () => {
       }
     } catch (error) {
       console.error('Error enrolling in course:', error);
-      toast.error('Failed to enroll in the course');
+      
+      // Check for 404 error specifically
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
+        toast.error('Course not found or enrollment is currently unavailable');
+        
+        // Log more detailed information for debugging
+        console.error('Course enrollment failed with 404. Course ID:', id);
+      } else {
+        toast.error('Failed to enroll in the course. Please try again later.');
+      }
     } finally {
       setIsEnrolling(false);
     }
