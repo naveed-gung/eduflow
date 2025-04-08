@@ -53,7 +53,9 @@ const StudentDashboard = () => {
             category: enrollment.courseId.level,
             duration: enrollment.courseId.duration,
             lessonsCount: 0, // This should be fetched from the course if available
-            progress: enrollment.progress
+            progress: enrollment.progress,
+            showProgress: true,
+            isEnrolled: true
           }));
           
           setEnrolledCourses(formattedCourses);
@@ -326,6 +328,7 @@ const StudentDashboard = () => {
               courses={enrolledCourses}
               loading={isLoading}
               className="mt-2" 
+              showProgress={true}
             />
             {!isLoading && enrolledCourses.length === 0 && (
               <div className="text-center py-12">
@@ -343,6 +346,7 @@ const StudentDashboard = () => {
               courses={recommendedCourses}
               loading={isLoading}
               className="mt-2" 
+              showProgress={false}
             />
           </TabsContent>
           

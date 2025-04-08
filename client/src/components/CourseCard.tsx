@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { PlayCircle, Clock, BookOpen } from 'lucide-react';
+import { PlayCircle, Clock, BookOpen, CheckCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export interface CourseProps {
@@ -17,6 +17,8 @@ export interface CourseProps {
   progress?: number;
   isPopular?: boolean;
   isNew?: boolean;
+  isEnrolled?: boolean;
+  showProgress?: boolean;
 }
 
 interface CourseCardProps {
@@ -24,9 +26,16 @@ interface CourseCardProps {
   loading?: boolean;
   variant?: 'default' | 'horizontal';
   className?: string;
+  showProgress?: boolean;
 }
 
-export function CourseCard({ course, loading = false, variant = 'default', className }: CourseCardProps) {
+export function CourseCard({ 
+  course, 
+  loading = false, 
+  variant = 'default', 
+  className,
+  showProgress = false 
+}: CourseCardProps) {
   if (loading) {
     return (
       <div className={cn(
@@ -64,21 +73,28 @@ export function CourseCard({ course, loading = false, variant = 'default', class
       )}
       data-title={course.title}
     >
+      {course.isEnrolled && (
+        <div className="absolute top-0 left-0 right-0 bg-primary text-primary-foreground text-xs font-medium py-1 z-10 flex items-center justify-center">
+          <CheckCircle className="h-3 w-3 mr-1" />
+          Currently Enrolled
+        </div>
+      )}
       <div className={cn(
         "relative overflow-hidden",
-        variant === 'horizontal' ? "w-full sm:w-1/3 h-40 sm:h-auto" : "w-full h-40 sm:h-48"
+        variant === 'horizontal' ? "w-full sm:w-1/3 h-40 sm:h-auto" : "w-full h-40 sm:h-48",
+        course.isEnrolled ? "pt-5" : ""
       )}>
         <img 
           src={course.thumbnailUrl} 
           alt={course.title}
           className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
         />
-        {course.isPopular && (
+        {course.isPopular && !course.isEnrolled && (
           <Badge variant="secondary" className="absolute top-2 left-2">
             Popular
           </Badge>
         )}
-        {course.isNew && (
+        {course.isNew && !course.isEnrolled && (
           <Badge variant="default" className="absolute top-2 left-2 bg-primary">
             New
           </Badge>
@@ -116,7 +132,7 @@ export function CourseCard({ course, loading = false, variant = 'default', class
           </div>
         </div>
         
-        {course.progress !== undefined && (
+        {course.progress !== undefined && (showProgress || course.showProgress) && (
           <div className="mt-2 sm:mt-3">
             <div className="flex justify-between text-xs mb-1">
               <span>Progress</span>

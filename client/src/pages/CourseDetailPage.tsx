@@ -134,9 +134,9 @@ const CourseDetailPage = () => {
         return;
       }
       
-      // Enroll user in the course - fixed endpoint format
+      // Enroll user in the course - FIXED: Changed endpoint format to match server route
       console.log('Making enrollment API call...');
-      const response = await api.post(`/courses/${id}/enroll`);
+      const response = await api.post(`/courses/enroll/${id}`);
       
       if (response.data.success) {
         setIsEnrolled(true);

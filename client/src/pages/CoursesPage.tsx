@@ -5,6 +5,7 @@ import { Search, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import api from '@/lib/api';
+import { useAuth } from '@/context/AuthProvider';
 
 // Number of courses per page
 const COURSES_PER_PAGE = 9;
@@ -22,7 +23,40 @@ interface CourseType {
   progress?: number;
   isPopular?: boolean;
   isNew?: boolean;
+  isEnrolled?: boolean;
 }
+
+// Featured courses section with a few featured courses
+const FeaturedCourses = ({ courses }: { courses: CourseType[] }) => {
+  const [featuredCourses, setFeaturedCourses] = useState<CourseType[]>([]);
+  
+  // Get 4 random courses for the featured section and shuffle them
+  useEffect(() => {
+    if (courses.length > 0) {
+      // Create a copy of courses to avoid mutating the original array
+      const shuffledCourses = [...courses]
+        .sort(() => Math.random() - 0.5) // Randomly shuffle
+        .slice(0, 4); // Take first 4 courses
+      
+      setFeaturedCourses(shuffledCourses);
+    }
+  }, [courses]);
+
+  if (featuredCourses.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="container mb-12">
+      <h2 className="text-2xl font-semibold mb-6">Featured Courses</h2>
+      <CourseGrid 
+        courses={featuredCourses} 
+        searchable={false}
+        showProgress={false} 
+      />
+    </div>
+  );
+};
 
 const CoursesPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -31,6 +65,31 @@ const CoursesPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCourses, setTotalCourses] = useState(0);
+  const { user, isAuthenticated } = useAuth();
+  const [enrolledCourseIds, setEnrolledCourseIds] = useState<string[]>([]);
+  
+  // Fetch user's enrolled courses
+  useEffect(() => {
+    const fetchEnrolledCourses = async () => {
+      if (!isAuthenticated || !user) {
+        return;
+      }
+      
+      try {
+        const response = await api.get('/users/profile');
+        if (response.data.success) {
+          const enrolledIds = response.data.user.enrolledCourses.map((course: any) => 
+            course.courseId._id || course.courseId
+          );
+          setEnrolledCourseIds(enrolledIds);
+        }
+      } catch (error) {
+        console.error('Error fetching enrolled courses:', error);
+      }
+    };
+    
+    fetchEnrolledCourses();
+  }, [isAuthenticated, user]);
   
   // Fetch courses from API with pagination
   useEffect(() => {
@@ -55,9 +114,11 @@ const CoursesPage = () => {
             thumbnailUrl: course.thumbnail,
             category: course.level,
             duration: course.duration,
-            lessonsCount: 0, // This should be updated if available from API
+            lessonsCount: course.modules?.reduce((acc: number, module: any) => 
+              acc + (module.lessons?.length || 0), 0) || 0,
             isPopular: course.studentsCount > 5,
-            isNew: new Date(course.createdAt || Date.now()).getTime() > Date.now() - (14 * 24 * 60 * 60 * 1000) // 14 days
+            isNew: new Date(course.createdAt || Date.now()).getTime() > Date.now() - (14 * 24 * 60 * 60 * 1000), // 14 days
+            isEnrolled: enrolledCourseIds.includes(course._id)
           }));
           
           setCourses(formattedCourses);
@@ -74,7 +135,7 @@ const CoursesPage = () => {
     };
     
     fetchCourses();
-  }, [currentPage, searchQuery]);
+  }, [currentPage, searchQuery, enrolledCourseIds]);
   
   // Handle search with debounce
   const handleSearch = (value: string) => {
@@ -148,6 +209,11 @@ const CoursesPage = () => {
         </div>
       </div>
       
+      {/* Featured Courses */}
+      {!isLoading && courses.length > 0 && (
+        <FeaturedCourses courses={courses} />
+      )}
+      
       {/* Search Bar */}
       <div className="container mt-8">
         <div className="relative mb-6 max-w-xl mx-auto">
@@ -182,6 +248,7 @@ const CoursesPage = () => {
         <CourseGrid 
             courses={courses}
             searchable={false} // We're handling search at the page level
+            showProgress={false} // Only show progress in student dashboard
           />
         )}
         
@@ -200,13 +267,15 @@ const CoursesPage = () => {
               
               {getPaginationArray().map((page, index) => (
                 page === 'ellipsis1' || page === 'ellipsis2' ? (
-                  <div key={page} className="px-2">...</div>
+                  <div key={`ellipsis-${index}`} className="px-2 text-muted-foreground">
+                    &#8230;
+                  </div>
                 ) : (
                   <Button
-                    key={index}
+                    key={`page-${page}`}
                     variant={currentPage === page ? "default" : "outline"}
                     size="icon"
-                    onClick={() => handlePageChange(Number(page))}
+                    onClick={() => handlePageChange(page as number)}
                     className="w-9 h-9"
                   >
                     {page}

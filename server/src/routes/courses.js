@@ -206,6 +206,111 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+// Create a test Machine Learning course (for development purposes)
+router.get('/test/create-ml-course', async (req, res) => {
+  try {
+    // Check if the ML course already exists
+    const existingCourse = await Course.findOne({ title: 'Complete Machine Learning Engineering Bootcamp' });
+    
+    if (existingCourse) {
+      return res.status(200).json({ 
+        success: true, 
+        message: 'ML course already exists',
+        course: existingCourse
+      });
+    }
+    
+    // We'll use the first admin user as instructor
+    const adminUser = await User.findOne({ role: 'admin' });
+    
+    if (!adminUser) {
+      return res.status(404).json({ message: 'No admin user found to set as instructor' });
+    }
+    
+    // Create a new ML course
+    const newCourse = new Course({
+      title: 'Complete Machine Learning Engineering Bootcamp',
+      description: 'Master the skills needed to become a Machine Learning Engineer with this comprehensive bootcamp. Learn to build, train, and deploy machine learning models using Python, TensorFlow, and cloud platforms.',
+      thumbnail: 'https://images.unsplash.com/photo-1555952494-efd681c7e3f9?auto=format&fit=crop&w=800&q=60',
+      instructor: adminUser._id,
+      instructorName: 'Dr. Emily Johnson',
+      level: 'Intermediate',
+      duration: '45 hours',
+      modules: [
+        {
+          title: 'Introduction to Machine Learning',
+          description: 'Learn the fundamentals of machine learning concepts and algorithms.',
+          order: 1,
+          lessons: [
+            {
+              title: 'What is Machine Learning?',
+              type: 'video',
+              content: 'Introduction to machine learning and its applications',
+              duration: 15,
+              videoUrl: 'https://youtu.be/NQH6Wn0jhWM',
+              order: 1
+            },
+            {
+              title: 'Supervised vs. Unsupervised Learning',
+              type: 'video',
+              content: 'Understanding different machine learning paradigms',
+              duration: 20,
+              videoUrl: 'https://youtu.be/1AuYOCgUuHQ',
+              order: 2
+            }
+          ]
+        },
+        {
+          title: 'Python for Machine Learning',
+          description: 'Master the essential Python libraries for machine learning.',
+          order: 2,
+          lessons: [
+            {
+              title: 'NumPy and Pandas Basics',
+              type: 'video',
+              content: 'Working with numerical data and data frames',
+              duration: 25,
+              videoUrl: 'https://youtu.be/QUT1VHiLmmQ',
+              order: 1
+            },
+            {
+              title: 'Data Visualization with Matplotlib',
+              type: 'video',
+              content: 'Creating effective visualizations for data analysis',
+              duration: 20,
+              videoUrl: 'https://youtu.be/DAQNHzOcO5A',
+              order: 2
+            }
+          ]
+        }
+      ],
+      learningPoints: [
+        'Build and train machine learning models using Python',
+        'Understand the mathematics behind popular ML algorithms',
+        'Implement neural networks using TensorFlow and Keras',
+        'Deploy ML models to production environments',
+        'Optimize and troubleshoot common ML engineering challenges'
+      ],
+      published: true,
+      status: 'Published',
+      language: 'English',
+      studentsCount: 0
+    });
+    
+    // Save the course to the database
+    await newCourse.save();
+    
+    res.status(201).json({
+      success: true,
+      message: 'Machine Learning course created successfully',
+      courseId: newCourse._id
+    });
+  } catch (error) {
+    console.error('Create ML course error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
 // Create a new course (admin only)
 router.post(
   '/',
