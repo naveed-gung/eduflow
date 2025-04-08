@@ -11,6 +11,7 @@ import axios from 'axios';
 import { toast } from 'sonner';
 import { useAuth } from '@/context/AuthProvider';
 import api from '@/lib/api';  // Import the API client
+import { VideoPlayer } from '@/components/VideoPlayer';
 
 interface Lesson {
   _id: string;
@@ -18,6 +19,7 @@ interface Lesson {
   type: string;
   duration: number;
   order: number;
+  videoUrl?: string;
 }
 
 interface Module {
@@ -59,6 +61,7 @@ const CourseDetailPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isEnrolling, setIsEnrolling] = useState(false);
   const [isEnrolled, setIsEnrolled] = useState(false);
+  const [selectedVideo, setSelectedVideo] = useState<{ url: string; title: string } | null>(null);
   
   useEffect(() => {
     const fetchCourse = async () => {
@@ -156,6 +159,14 @@ const CourseDetailPage = () => {
     } finally {
       setIsEnrolling(false);
     }
+  };
+  
+  const handlePlayVideo = (videoUrl: string, title: string) => {
+    if (!isEnrolled) {
+      toast.error('Please enroll in the course to access the video content');
+      return;
+    }
+    setSelectedVideo({ url: videoUrl, title });
   };
   
   if (isLoading) {
@@ -344,7 +355,12 @@ const CourseDetailPage = () => {
                           </div>
                           
                           {isEnrolled ? (
-                            <Button variant="ghost" size="sm" className="ml-2">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="ml-2"
+                              onClick={() => handlePlayVideo(lesson.videoUrl, lesson.title)}
+                            >
                               <Play className="h-4 w-4" />
                               <span className="sr-only sm:not-sr-only sm:ml-2">Play</span>
                             </Button>
@@ -421,6 +437,16 @@ const CourseDetailPage = () => {
           </TabsContent>
         </Tabs>
       </div>
+      
+      {/* Video Player Modal */}
+      {selectedVideo && (
+        <VideoPlayer
+          isOpen={!!selectedVideo}
+          onClose={() => setSelectedVideo(null)}
+          videoUrl={selectedVideo.url}
+          title={selectedVideo.title}
+        />
+      )}
       
       {/* Related Courses */}
       <div className="container mt-16">
