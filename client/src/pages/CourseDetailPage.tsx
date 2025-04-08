@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Clock, BookOpen, Award, CheckCircle, ExternalLink, Play, User, Users, Lock } from 'lucide-react';
+import { Clock, BookOpen, Award, CheckCircle, ExternalLink, Play, User, Users, Lock, PlayCircle, LoaderCircle } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { useAuth } from '@/context/AuthProvider';
