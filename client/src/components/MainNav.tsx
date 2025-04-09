@@ -145,14 +145,6 @@ export function MainNav({ className }: React.HTMLAttributes<HTMLElement>) {
               </Link>
             </DropdownMenuItem>
           )}
-          {user?.role === 'admin' && (
-            <DropdownMenuItem asChild>
-              <Link to="/admin/certificates">
-                <Award className="mr-2 h-4 w-4" />
-                <span>Certificates</span>
-              </Link>
-            </DropdownMenuItem>
-          )}
           <DropdownMenuItem asChild>
             <Link to="/settings">
               <Settings className="mr-2 h-4 w-4" />
@@ -250,14 +242,6 @@ export function MainNav({ className }: React.HTMLAttributes<HTMLElement>) {
                 {user?.role === 'student' && (
                   <DropdownMenuItem asChild>
                     <Link to="/certificates">
-                      <Award className="mr-2 h-4 w-4" />
-                      <span>Certificates</span>
-                    </Link>
-                  </DropdownMenuItem>
-                )}
-                {user?.role === 'admin' && (
-                  <DropdownMenuItem asChild>
-                    <Link to="/admin/certificates">
                       <Award className="mr-2 h-4 w-4" />
                       <span>Certificates</span>
                     </Link>

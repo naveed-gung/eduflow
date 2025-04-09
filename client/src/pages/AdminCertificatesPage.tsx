@@ -39,6 +39,7 @@ import { Award, MoreHorizontal, Search, Eye } from 'lucide-react';
 import { CertificateViewer } from '@/components/CertificateViewer';
 import { PageHeader } from '@/components/PageHeader';
 import api from '@/lib/api';  // Import the API client
+import { useNavigate } from 'react-router-dom';
 
 interface CertificateType {
   _id: string;
@@ -58,6 +59,7 @@ interface CertificateType {
 
 const AdminCertificatesPage = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [certificates, setCertificates] = useState<CertificateType[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -72,6 +74,8 @@ const AdminCertificatesPage = () => {
   // Fetch certificates
   useEffect(() => {
     const fetchCertificates = async () => {
+      if (!user || user.role !== 'admin') return;
+      
       try {
         setIsLoading(true);
         
@@ -84,7 +88,14 @@ const AdminCertificatesPage = () => {
         }
       } catch (error) {
         console.error('Error fetching certificates:', error);
-        toast.error('Failed to fetch certificates');
+        if (axios.isAxiosError(error) && error.response?.status === 401) {
+          toast.error("Authentication error. Please log in again.");
+          localStorage.removeItem('eduflow-token');
+          navigate('/signin');
+        } else {
+          toast.error('Failed to fetch certificates. Please try again later.');
+        }
+        setCertificates([]);
       } finally {
         setIsLoading(false);
       }
@@ -93,7 +104,7 @@ const AdminCertificatesPage = () => {
     if (user && user.role === 'admin') {
       fetchCertificates();
     }
-  }, [user, currentPage, searchQuery]);
+  }, [user, currentPage, searchQuery, navigate, itemsPerPage]);
   
   // Handle search
   const handleSearch = (e: React.FormEvent) => {

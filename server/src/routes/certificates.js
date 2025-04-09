@@ -237,7 +237,7 @@ router.get('/:id', authenticate, async (req, res) => {
 
 // ADMIN ROUTES
 
-// Get all certificates (admin only)
+// Get all certificates (admin only) - this returns from the Certificate model
 router.get('/admin/all', [authenticate, isAdmin], async (req, res) => {
   try {
     const { page = 1, limit = 20 } = req.query;
@@ -263,6 +263,66 @@ router.get('/admin/all', [authenticate, isAdmin], async (req, res) => {
     });
   } catch (error) {
     console.error('Get all certificates error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Get all user certificates for admin (searches in user documents)
+router.get('/admin', [authenticate, isAdmin], async (req, res) => {
+  try {
+    const { page = 1, limit = 10, search = '' } = req.query;
+    const parsedPage = parseInt(page);
+    const parsedLimit = parseInt(limit);
+    
+    // Find users with certificates
+    const usersWithCertificates = await User.find({ 
+      'certificates.0': { $exists: true },
+      $or: [
+        { name: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } },
+        { 'certificates.courseName': { $regex: search, $options: 'i' } },
+        { 'certificates.certificateNumber': { $regex: search, $options: 'i' } }
+      ]
+    }).select('name email certificates');
+    
+    // Extract all certificates with user information
+    let allCertificates = [];
+    usersWithCertificates.forEach(user => {
+      user.certificates.forEach(cert => {
+        allCertificates.push({
+          _id: cert._id,
+          certificateNumber: cert.certificateNumber,
+          courseName: cert.courseName,
+          courseId: cert.courseId,
+          issueDate: cert.issueDate,
+          userId: {
+            _id: user._id,
+            name: user.name,
+            email: user.email
+          }
+        });
+      });
+    });
+    
+    // Sort by issue date, newest first
+    allCertificates.sort((a, b) => new Date(b.issueDate) - new Date(a.issueDate));
+    
+    // Calculate pagination
+    const totalCount = allCertificates.length;
+    const startIndex = (parsedPage - 1) * parsedLimit;
+    const endIndex = startIndex + parsedLimit;
+    const paginatedCertificates = allCertificates.slice(startIndex, endIndex);
+    
+    res.status(200).json({
+      success: true,
+      certificates: paginatedCertificates,
+      count: paginatedCertificates.length,
+      totalCount,
+      totalPages: Math.ceil(totalCount / parsedLimit),
+      currentPage: parsedPage
+    });
+  } catch (error) {
+    console.error('Get admin user certificates error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });

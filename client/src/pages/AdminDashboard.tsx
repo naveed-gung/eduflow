@@ -98,17 +98,21 @@ const AdminDashboard = () => {
   useEffect(() => {
     if (!user) {
       navigate('/signin');
+      return;
     } else if (user.role !== 'admin') {
+      toast.error("You don't have permission to access the admin dashboard");
       navigate('/dashboard/student');
+      return;
     }
+    
+    // Only fetch data if the user is an admin
+    fetchCourses();
+    fetchDashboardData();
   }, [user, navigate]);
   
-  // Fetch courses from API on mount
-  useEffect(() => {
-    fetchCourses();
-  }, []);
-
   const fetchCourses = async () => {
+    if (!user || user.role !== 'admin') return;
+    
     try {
       setIsLoading(true);
       
@@ -129,12 +133,49 @@ const AdminDashboard = () => {
         }
       } catch (error) {
         console.error('Error fetching students:', error);
-        // Use empty array if API fails
+        if (axios.isAxiosError(error) && error.response?.status === 401) {
+          toast.error("Authentication error. Please log in again.");
+          localStorage.removeItem('eduflow-token');
+          navigate('/signin');
+        } else {
+          toast.error('Failed to fetch student data');
+        }
         setRecentStudents([]);
       }
     } catch (error) {
       console.error('Error fetching courses:', error);
-      toast.error('Failed to fetch courses from the server');
+      if (axios.isAxiosError(error) && error.response?.status === 401) {
+        toast.error("Authentication error. Please log in again.");
+        localStorage.removeItem('eduflow-token');
+        navigate('/signin');
+      } else {
+        toast.error('Failed to fetch courses from the server');
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Fetch admin dashboard data
+  const fetchDashboardData = async () => {
+    if (!user || user.role !== 'admin') return;
+    
+    try {
+      setIsLoading(true);
+      const response = await api.get('/users/admin/dashboard-stats');
+      
+      if (response.data.success) {
+        setStats(response.data.stats);
+      }
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+      if (axios.isAxiosError(error) && error.response?.status === 401) {
+        toast.error("Authentication error. Please log in again.");
+        localStorage.removeItem('eduflow-token');
+        navigate('/signin');
+      } else {
+        toast.error('Failed to fetch dashboard statistics');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -222,27 +263,6 @@ const AdminDashboard = () => {
       )
     : courses;
 
-  // Fetch admin dashboard data
-  useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        setIsLoading(true);
-        const response = await api.get('/admin/dashboard-stats');
-        
-        if (response.data.success) {
-          setStats(response.data.stats);
-        }
-      } catch (error) {
-        console.error('Error fetching dashboard data:', error);
-        toast.error('Failed to fetch dashboard data');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchDashboardData();
-  }, []);
-
   // Colors for category distribution chart
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
@@ -267,7 +287,7 @@ const AdminDashboard = () => {
                 <Award className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                 Certificates
               </Button>
-              <Button variant="outline" size="sm" className="h-9 text-xs sm:text-sm">
+              <Button variant="outline" size="sm" className="h-9 text-xs sm:text-sm" onClick={() => toast.info("Reports feature coming soon!")}>
                 <Download className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                 Reports
               </Button>
@@ -276,206 +296,104 @@ const AdminDashboard = () => {
         </div>
       </div>
       
-      <div className="container mt-6 sm:mt-8">
-        {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BookOpen className="h-5 w-5" />
-                Total Courses
-              </CardTitle>
-              <CardDescription>Total number of courses</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.totalCourses}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5" />
-                Total Students
-              </CardTitle>
-              <CardDescription>Total number of students</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.totalStudents}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Award className="h-5 w-5" />
-                Total Certificates
-              </CardTitle>
-              <CardDescription>Total number of certificates issued</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.totalCertificates}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5" />
-                Completion Rate
-              </CardTitle>
-              <CardDescription>Overall course completion rate across all students</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.completionRate}%</div>
-            </CardContent>
-          </Card>
-        </div>
-        
-        {/* Completion Rate */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5" />
-              Completion Rate
-            </CardTitle>
-            <CardDescription>Overall course completion rate across all students</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Overall Completion Rate</span>
-                <span className="text-sm font-medium">{stats.completionRate}%</span>
-              </div>
-              <Progress value={stats.completionRate} className="h-3" />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Course Performance */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BarChart2 className="h-5 w-5" />
-              Course Performance
-            </CardTitle>
-            <CardDescription>Performance metrics for each course</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={stats.coursePerformance}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="title" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="completionRate" fill="#8884d8" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Category Distribution */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <PieChartIcon className="h-5 w-5" />
-              Category Distribution
-            </CardTitle>
-            <CardDescription>Distribution of courses across categories</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={stats.categoryDistribution}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                  >
-                    {stats.categoryDistribution.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mt-6">
+      {/* Stats Cards */}
+      <div className="container mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Show loader or error message if appropriate */}
+        {isLoading ? (
+          Array(4).fill(0).map((_, i) => (
+            <Card key={i} className="animate-pulse">
+              <CardContent className="pt-6">
+                <div className="h-20 bg-muted/40 rounded-md"></div>
+              </CardContent>
+            </Card>
+          ))
+        ) : (
+          <>
+            {/* Students */}
+            <Card className="shadow-sm">
+              <CardContent className="pt-6">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="text-sm font-medium mb-1">Total Students</p>
+                    <h2 className="text-3xl font-bold">{stats.totalStudents || 0}</h2>
+                  </div>
+                  <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-full">
+                    <Users className="w-6 h-6 text-blue-600 dark:text-blue-500" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            
+            {/* Additional stats cards... */}
+          </>
+        )}
+      </div>
+      
+      {/* Content */}
+      <div className="container mt-10">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Course Management */}
-          <Card className="lg:col-span-2">
-            <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-2 sm:space-y-0">
-              <div>
-                <CardTitle>Course Management</CardTitle>
-                <CardDescription>Manage and track your courses</CardDescription>
-              </div>
-              <div className="flex gap-2 w-full sm:w-auto">
-                <Button variant="outline" size="sm" className="text-xs">
-                  <Upload className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-                  Import
-                </Button>
-                <Button size="sm" onClick={() => setIsFormOpen(true)} className="text-xs flex-1 sm:flex-initial">
-                  <Plus className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-                  Add Course
-                </Button>
-              </div>
+          <Card className="lg:col-span-2 shadow-sm">
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span>Course Management</span>
+                {!isLoading && (
+                  <div className="text-sm font-normal">
+                    {filteredCourses.length} courses
+                  </div>
+                )}
+              </CardTitle>
+              <CardDescription>Manage your educational content</CardDescription>
+              
+              {!isLoading && (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  <div className="relative w-full sm:w-auto flex-grow">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input 
+                      placeholder="Search courses..." 
+                      className="pl-8" 
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                  </div>
+                </div>
+              )}
             </CardHeader>
             <CardContent>
-              <div className="relative mb-4">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                <Input
-                  placeholder="Search courses..."
-                  className="pl-9"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-              
-              <div className="rounded-md border overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Title</TableHead>
-                      <TableHead className="hidden md:table-cell">Category</TableHead>
-                      <TableHead className="hidden md:table-cell">Published</TableHead>
-                      <TableHead className="text-right">Students</TableHead>
-                      <TableHead className="text-right">Revenue</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {isLoading ? (
-                      // Loading skeleton rows
-                      [1, 2, 3].map((_, index) => (
-                        <TableRow key={`skeleton-${index}`}>
-                          <TableCell className="font-medium py-3">
-                            <div className="h-4 bg-muted rounded w-4/5 animate-pulse"></div>
-                          </TableCell>
-                          <TableCell className="hidden md:table-cell">
-                            <div className="h-4 bg-muted rounded w-1/2 animate-pulse"></div>
-                          </TableCell>
-                          <TableCell className="hidden md:table-cell">
-                            <div className="h-4 bg-muted rounded w-1/3 animate-pulse"></div>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="h-4 bg-muted rounded w-1/3 ml-auto animate-pulse"></div>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="h-4 bg-muted rounded w-1/3 ml-auto animate-pulse"></div>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="h-8 bg-muted rounded w-8 ml-auto animate-pulse"></div>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    ) : filteredCourses.length > 0 ? (
-                      filteredCourses.map((course) => (
+              {isLoading ? (
+                <div className="flex items-center justify-center py-10">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                  <span className="ml-3">Loading courses...</span>
+                </div>
+              ) : filteredCourses.length === 0 ? (
+                <div className="text-center py-10">
+                  <BookOpen className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground">No courses found</p>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="mt-4"
+                    onClick={() => setIsFormOpen(true)}
+                  >
+                    <Plus className="mr-2 h-3 w-3" />
+                    Add Course
+                  </Button>
+                </div>
+              ) : (
+                <div className="rounded-md border overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Title</TableHead>
+                        <TableHead className="hidden md:table-cell">Category</TableHead>
+                        <TableHead className="hidden md:table-cell">Published</TableHead>
+                        <TableHead className="text-right">Students</TableHead>
+                        <TableHead className="text-right">Revenue</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredCourses.map((course) => (
                       <TableRow key={course.id}>
                           <TableCell className="font-medium py-3 truncate max-w-[120px] md:max-w-none">
                             {course.title}
@@ -523,38 +441,43 @@ const AdminDashboard = () => {
                           </DropdownMenu>
                         </TableCell>
                       </TableRow>
-                      ))
-                    ) : (
-                      <TableRow>
-                        <TableCell colSpan={6} className="text-center py-6 text-muted-foreground">
-                          No courses found. Create your first course to get started!
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
             </CardContent>
           </Card>
           
           {/* Recent Students */}
-          <Card>
-            <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-2 sm:space-y-0">
-              <div>
-                <CardTitle>Recent Students</CardTitle>
-                <CardDescription>New students that joined recently</CardDescription>
-              </div>
-              <div className="w-full sm:w-auto">
-                <Input 
-                  placeholder="Search students..." 
-                  className="w-full"
-                />
-              </div>
+          <Card className="shadow-sm">
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span>Recent Students</span>
+                {!isLoading && (
+                  <div className="text-sm font-normal">
+                    {studentCount} total
+                  </div>
+                )}
+              </CardTitle>
+              <CardDescription>
+                Recently joined students
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {recentStudents.length > 0 ? (
-                  recentStudents.map((student) => (
+              {isLoading ? (
+                <div className="flex items-center justify-center py-10">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                  <span className="ml-3">Loading students...</span>
+                </div>
+              ) : recentStudents.length === 0 ? (
+                <div className="text-center py-10">
+                  <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground">No student data available</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {recentStudents.map((student) => (
                   <div 
                     key={student.id}
                       className="flex items-center justify-between py-2 border-b border-border/50 last:border-0"
@@ -603,23 +526,9 @@ const AdminDashboard = () => {
                         </DropdownMenu>
                       </div>
                     </div>
-                  ))
-                ) : (
-                  <div className="text-center py-6 text-muted-foreground">
-                    No students data available.
-                  </div>
-                )}
-              </div>
-              
-              <div className="flex justify-between items-center mt-8">
-                <div className="text-sm text-muted-foreground">
-                  Showing {recentStudents.length} of {studentCount} students
+                  ))}
                 </div>
-                <Button variant="outline" size="sm" onClick={() => navigate('/admin/students')}>
-                  <Users className="mr-2 h-4 w-4" />
-                  All Students
-                </Button>
-              </div>
+              )}
             </CardContent>
           </Card>
         </div>
