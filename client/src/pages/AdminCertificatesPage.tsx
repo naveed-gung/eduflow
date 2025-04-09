@@ -79,26 +79,14 @@ const AdminCertificatesPage = () => {
       try {
         setIsLoading(true);
         
-        // First try with /admin endpoint
-        try {
-          const response = await api.get(`/certificates/admin?page=${currentPage}&limit=${itemsPerPage}&search=${searchQuery}`);
-          
-          if (response.data.success) {
-            setCertificates(response.data.certificates || []);
-            setTotalItems(response.data.totalCount || 0);
-            setTotalPages(response.data.totalPages || 1);
-          }
-        } catch (error) {
-          console.error('Error with first endpoint, trying alternative endpoint:', error);
-          
-          // If first endpoint fails, try with /admin/all endpoint as fallback
-          const fallbackResponse = await api.get(`/certificates/admin/all?page=${currentPage}&limit=${itemsPerPage}&search=${searchQuery}`);
-          
-          if (fallbackResponse.data.success) {
-            setCertificates(fallbackResponse.data.certificates || []);
-            setTotalItems(fallbackResponse.data.totalCount || 0);
-            setTotalPages(fallbackResponse.data.totalPages || 1);
-          }
+        // Use the /admin/all endpoint as the primary endpoint since /admin is returning 404
+        const response = await api.get(`/certificates/admin/all?page=${currentPage}&limit=${itemsPerPage}&search=${searchQuery}`);
+        
+        if (response.data.success) {
+          setCertificates(response.data.certificates || []);
+          setTotalItems(response.data.totalCount || 0);
+          setTotalPages(response.data.totalPages || 1);
+          console.log('Successfully fetched certificates from admin/all endpoint');
         }
       } catch (error) {
         console.error('Error fetching certificates:', error);

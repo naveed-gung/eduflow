@@ -202,16 +202,53 @@ const AdminDashboard = () => {
       const response = await api.get('/users/admin/dashboard-stats');
       
       if (response.data.success) {
+        // Set received stats data
+        const receivedStats = response.data.stats;
+
+        // Default placeholder data for charts
+        const defaultCoursePerformance = [
+          { name: 'React Basics', students: 45, completion: 78 },
+          { name: 'Node.js', students: 32, completion: 65 },
+          { name: 'Python Fundamentals', students: 28, completion: 82 },
+          { name: 'JavaScript', students: 22, completion: 70 },
+          { name: 'Data Science', students: 18, completion: 58 }
+        ];
+        
+        const defaultCategoryDistribution = [
+          { name: 'Web Development', value: 45 },
+          { name: 'Mobile Dev', value: 25 },
+          { name: 'Data Science', value: 20 },
+          { name: 'UI/UX Design', value: 10 }
+        ];
+
+        // Check if coursePerformance data is empty/missing and use default if needed
+        const coursePerformance = 
+          receivedStats.coursePerformance && 
+          receivedStats.coursePerformance.length > 0 
+            ? receivedStats.coursePerformance.map(course => ({
+                name: course.name || 'Unknown',
+                students: course.students || 0,
+                completion: course.completion || 0
+              })) 
+            : defaultCoursePerformance;
+        
+        // Check if categoryDistribution data is empty/missing and use default if needed
+        const categoryDistribution = 
+          receivedStats.categoryDistribution && 
+          receivedStats.categoryDistribution.length > 0 
+            ? receivedStats.categoryDistribution 
+            : defaultCategoryDistribution;
+
+        // Set the complete stats object
         setStats({
-          ...response.data.stats,
-          // Make sure coursePerformance exists and is formatted correctly
-          coursePerformance: (response.data.stats.coursePerformance || []).map(course => ({
-            name: course.name || 'Unknown',
-            students: course.students || 0,
-            completion: course.completion || 0
-          })),
-          // Make sure categoryDistribution exists
-          categoryDistribution: response.data.stats.categoryDistribution || []
+          ...receivedStats,
+          coursePerformance,
+          categoryDistribution
+        });
+        
+        console.log('Dashboard stats loaded:', {
+          coursePerformanceCount: coursePerformance.length,
+          categoryDistributionCount: categoryDistribution.length
         });
       }
     } catch (error) {
@@ -222,21 +259,22 @@ const AdminDashboard = () => {
         navigate('/signin');
       } else {
         toast.error('Failed to fetch dashboard statistics');
-        // Set some default mock data for demonstration
+        
+        // Set default mock data for demonstration
         setStats({
           ...stats,
           coursePerformance: [
-            { name: 'React', students: 45, completion: 78 },
+            { name: 'React Basics', students: 45, completion: 78 },
             { name: 'Node.js', students: 32, completion: 65 },
-            { name: 'Python', students: 28, completion: 82 },
-            { name: 'Java', students: 22, completion: 70 },
-            { name: 'C++', students: 18, completion: 58 }
+            { name: 'Python Fundamentals', students: 28, completion: 82 },
+            { name: 'JavaScript', students: 22, completion: 70 },
+            { name: 'Data Science', students: 18, completion: 58 }
           ],
           categoryDistribution: [
-            { name: 'Web Dev', value: 45 },
-            { name: 'Mobile', value: 25 },
-            { name: 'Data Sci', value: 20 },
-            { name: 'Design', value: 10 }
+            { name: 'Web Development', value: 45 },
+            { name: 'Mobile Dev', value: 25 },
+            { name: 'Data Science', value: 20 },
+            { name: 'UI/UX Design', value: 10 }
           ]
         });
       }

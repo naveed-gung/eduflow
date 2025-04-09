@@ -18,6 +18,7 @@ import CourseDetailPage from "./pages/CourseDetailPage";
 import StudentDashboard from "./pages/StudentDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminCertificatesPage from "./pages/AdminCertificatesPage";
+import AdminStudentProfilePage from "./pages/AdminStudentProfilePage";
 import CertificateVerifierPage from "./pages/CertificateVerifierPage";
 import ProfilePage from "./pages/ProfilePage";
 import SettingsPage from "./pages/SettingsPage";
@@ -146,6 +147,11 @@ const AppContent = () => {
             <Route path="/admin/certificates" element={
               <ProtectedRoute>
                 <AdminCertificatesPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/students/:id" element={
+              <ProtectedRoute>
+                <AdminStudentProfilePage />
               </ProtectedRoute>
             } />
             <Route path="/verify-certificate" element={<CertificateVerifierPage />} />
