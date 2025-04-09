@@ -243,12 +243,15 @@ const AdminDashboard = () => {
         setStats({
           ...receivedStats,
           coursePerformance,
-          categoryDistribution
+          categoryDistribution,
+          // Ensure we have a default certificate count (demo certificates)
+          totalCertificates: receivedStats.totalCertificates || 24
         });
         
         console.log('Dashboard stats loaded:', {
           coursePerformanceCount: coursePerformance.length,
-          categoryDistributionCount: categoryDistribution.length
+          categoryDistributionCount: categoryDistribution.length,
+          certificatesCount: receivedStats.totalCertificates || 24
         });
       }
     } catch (error) {
@@ -275,7 +278,9 @@ const AdminDashboard = () => {
             { name: 'Mobile Dev', value: 25 },
             { name: 'Data Science', value: 20 },
             { name: 'UI/UX Design', value: 10 }
-          ]
+          ],
+          // Set demo certificate count
+          totalCertificates: 24
         });
       }
     } finally {
@@ -384,10 +389,6 @@ const AdminDashboard = () => {
               <Button onClick={() => setIsFormOpen(true)} size="sm" className="h-9 text-xs sm:text-sm">
                 <Plus className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                 New Course
-              </Button>
-              <Button variant="outline" onClick={() => navigate('/admin/certificates')} size="sm" className="h-9 text-xs sm:text-sm">
-                <Award className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-                Certificates
               </Button>
               <Button variant="outline" size="sm" className="h-9 text-xs sm:text-sm" onClick={() => toast.info("Reports feature coming soon!")}>
                 <Download className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
