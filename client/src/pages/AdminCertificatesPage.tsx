@@ -79,12 +79,26 @@ const AdminCertificatesPage = () => {
       try {
         setIsLoading(true);
         
-        const response = await api.get(`/certificates/admin?page=${currentPage}&limit=${itemsPerPage}&search=${searchQuery}`);
-        
-        if (response.data.success) {
-          setCertificates(response.data.certificates || []);
-          setTotalItems(response.data.totalCount || 0);
-          setTotalPages(response.data.totalPages || 1);
+        // First try with /admin endpoint
+        try {
+          const response = await api.get(`/certificates/admin?page=${currentPage}&limit=${itemsPerPage}&search=${searchQuery}`);
+          
+          if (response.data.success) {
+            setCertificates(response.data.certificates || []);
+            setTotalItems(response.data.totalCount || 0);
+            setTotalPages(response.data.totalPages || 1);
+          }
+        } catch (error) {
+          console.error('Error with first endpoint, trying alternative endpoint:', error);
+          
+          // If first endpoint fails, try with /admin/all endpoint as fallback
+          const fallbackResponse = await api.get(`/certificates/admin/all?page=${currentPage}&limit=${itemsPerPage}&search=${searchQuery}`);
+          
+          if (fallbackResponse.data.success) {
+            setCertificates(fallbackResponse.data.certificates || []);
+            setTotalItems(fallbackResponse.data.totalCount || 0);
+            setTotalPages(fallbackResponse.data.totalPages || 1);
+          }
         }
       } catch (error) {
         console.error('Error fetching certificates:', error);
@@ -94,8 +108,12 @@ const AdminCertificatesPage = () => {
           navigate('/signin');
         } else {
           toast.error('Failed to fetch certificates. Please try again later.');
+          
+          // Set empty certificates array
+          setCertificates([]);
+          setTotalItems(0);
+          setTotalPages(1);
         }
-        setCertificates([]);
       } finally {
         setIsLoading(false);
       }

@@ -18,9 +18,10 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "concurrently": "^8.2.2"
+    "concurrently": "^8.2.2",
+    "recharts": "^2.15.2"
   },
   "engines": {
     "node": ">=14.0.0"
   }
-} 
+}

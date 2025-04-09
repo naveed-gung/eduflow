@@ -46,7 +46,18 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import api from '@/lib/api';  // Import the API client
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Progress } from "@/components/ui/progress";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as RechartsTooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell
+} from 'recharts';
 import { BookOpen } from 'lucide-react';
 
 // Student interface
@@ -71,6 +82,30 @@ interface Course {
   description?: string;
 }
 
+// Add these interfaces below the existing ones
+
+interface CoursePerformance {
+  name: string;
+  students: number;
+  completion: number;
+}
+
+interface CategoryDistribution {
+  name: string;
+  value: number;
+}
+
+interface DashboardStats {
+  totalStudents: number;
+  activeCourses: number;
+  totalCourses: number;
+  avgCompletionRate: number;
+  totalCertificates: number;
+  totalRevenue: number;
+  coursePerformance: CoursePerformance[];
+  categoryDistribution: CategoryDistribution[];
+}
+
 const AdminDashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -85,11 +120,13 @@ const AdminDashboard = () => {
   const [recentStudents, setRecentStudents] = useState<Student[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [studentCount, setStudentCount] = useState(0);
-  const [stats, setStats] = useState({
+  const [stats, setStats] = useState<DashboardStats>({
     totalStudents: 0,
+    activeCourses: 0,
     totalCourses: 0,
+    avgCompletionRate: 0,
     totalCertificates: 0,
-    completionRate: 0,
+    totalRevenue: 0,
     coursePerformance: [],
     categoryDistribution: []
   });
@@ -165,7 +202,17 @@ const AdminDashboard = () => {
       const response = await api.get('/users/admin/dashboard-stats');
       
       if (response.data.success) {
-        setStats(response.data.stats);
+        setStats({
+          ...response.data.stats,
+          // Make sure coursePerformance exists and is formatted correctly
+          coursePerformance: (response.data.stats.coursePerformance || []).map(course => ({
+            name: course.name || 'Unknown',
+            students: course.students || 0,
+            completion: course.completion || 0
+          })),
+          // Make sure categoryDistribution exists
+          categoryDistribution: response.data.stats.categoryDistribution || []
+        });
       }
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
@@ -175,6 +222,23 @@ const AdminDashboard = () => {
         navigate('/signin');
       } else {
         toast.error('Failed to fetch dashboard statistics');
+        // Set some default mock data for demonstration
+        setStats({
+          ...stats,
+          coursePerformance: [
+            { name: 'React', students: 45, completion: 78 },
+            { name: 'Node.js', students: 32, completion: 65 },
+            { name: 'Python', students: 28, completion: 82 },
+            { name: 'Java', students: 22, completion: 70 },
+            { name: 'C++', students: 18, completion: 58 }
+          ],
+          categoryDistribution: [
+            { name: 'Web Dev', value: 45 },
+            { name: 'Mobile', value: 25 },
+            { name: 'Data Sci', value: 20 },
+            { name: 'Design', value: 10 }
+          ]
+        });
       }
     } finally {
       setIsLoading(false);
@@ -324,13 +388,129 @@ const AdminDashboard = () => {
               </CardContent>
             </Card>
             
-            {/* Additional stats cards... */}
+            {/* Courses */}
+            <Card className="shadow-sm">
+              <CardContent className="pt-6">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="text-sm font-medium mb-1">Active Courses</p>
+                    <h2 className="text-3xl font-bold">{stats.activeCourses || courses.length || 0}</h2>
+                  </div>
+                  <div className="p-2 bg-green-100 dark:bg-green-900/20 rounded-full">
+                    <BookOpen className="w-6 h-6 text-green-600 dark:text-green-500" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            
+            {/* Completion Rate */}
+            <Card className="shadow-sm">
+              <CardContent className="pt-6">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="text-sm font-medium mb-1">Avg. Completion</p>
+                    <h2 className="text-3xl font-bold">{stats.avgCompletionRate || 0}%</h2>
+                  </div>
+                  <div className="p-2 bg-amber-100 dark:bg-amber-900/20 rounded-full">
+                    <TrendingUp className="w-6 h-6 text-amber-600 dark:text-amber-500" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            
+            {/* Certificates */}
+            <Card className="shadow-sm">
+              <CardContent className="pt-6">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="text-sm font-medium mb-1">Certificates</p>
+                    <h2 className="text-3xl font-bold">{stats.totalCertificates || 0}</h2>
+                  </div>
+                  <div className="p-2 bg-purple-100 dark:bg-purple-900/20 rounded-full">
+                    <Award className="w-6 h-6 text-purple-600 dark:text-purple-500" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </>
         )}
       </div>
       
+      {/* Charts */}
+      <div className="container mt-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          {/* Course Performance */}
+          <Card className="shadow-sm">
+            <CardHeader>
+              <CardTitle>Course Performance</CardTitle>
+              <CardDescription>Student enrollment and completion rate by course</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <div className="h-[300px] flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+                </div>
+              ) : (
+                <div className="h-[300px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={stats.coursePerformance}
+                      margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" />
+                      <YAxis />
+                      <RechartsTooltip />
+                      <Bar dataKey="students" name="Students" fill="#8884d8" />
+                      <Bar dataKey="completion" name="Completion %" fill="#82ca9d" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+          
+          {/* Category Distribution */}
+          <Card className="shadow-sm">
+            <CardHeader>
+              <CardTitle>Category Distribution</CardTitle>
+              <CardDescription>Distribution of courses by category</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <div className="h-[300px] flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+                </div>
+              ) : (
+                <div className="h-[300px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={stats.categoryDistribution}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                        outerRadius={100}
+                        fill="#8884d8"
+                        dataKey="value"
+                      >
+                        {stats.categoryDistribution.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <RechartsTooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+      
       {/* Content */}
-      <div className="container mt-10">
+      <div className="container mt-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Course Management */}
           <Card className="lg:col-span-2 shadow-sm">
@@ -388,7 +568,6 @@ const AdminDashboard = () => {
                         <TableHead className="hidden md:table-cell">Category</TableHead>
                         <TableHead className="hidden md:table-cell">Published</TableHead>
                         <TableHead className="text-right">Students</TableHead>
-                        <TableHead className="text-right">Revenue</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -411,7 +590,6 @@ const AdminDashboard = () => {
                             )}
                         </TableCell>
                         <TableCell className="text-right">{course.students}</TableCell>
-                          <TableCell className="text-right">${course.revenue.toFixed(2)}</TableCell>
                         <TableCell className="text-right">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
