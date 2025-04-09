@@ -30,34 +30,56 @@ import { MainNav } from "./components/MainNav";
 
 const queryClient = new QueryClient();
 
-// AuthRoute component to protect routes
+// Auth route component to prevent authenticated users from accessing login/signup pages
 const AuthRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated, user, isLoading } = useAuth();
-  
-  // Show nothing while checking authentication
+  const { isAuthenticated, isLoading, user } = useAuth();
+  const location = useLocation();
+
+  // Log for debugging purposes
+  useEffect(() => {
+    console.log(`AuthRoute - Checking auth for ${location.pathname}. Auth state:`, { isAuthenticated, isLoading, userRole: user?.role });
+  }, [isAuthenticated, isLoading, location.pathname, user?.role]);
+
+  // Show loading state while checking authentication
   if (isLoading) {
-    return null;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
   }
-  
-  // If user is authenticated, redirect to their dashboard based on role
-  if (isAuthenticated && user) {
-    // Use user from context instead of localStorage to ensure it's the most up-to-date
-    const dashboardPath = user.role === 'admin' ? '/dashboard/admin' : '/dashboard/student';
-    console.log(`Redirecting authenticated user to ${dashboardPath}`);
-    return <Navigate to={dashboardPath} replace />;
+
+  // If user is already authenticated, redirect based on their role
+  if (isAuthenticated) {
+    console.log('User already authenticated, redirecting to dashboard');
+    // Redirect to the appropriate dashboard based on user role
+    if (user?.role === 'admin') {
+      return <Navigate to="/admin/dashboard" replace />;
+    }
+    return <Navigate to="/student/dashboard" replace />;
   }
-  
-  // If not authenticated, render the children (login/signup page)
+
+  // If not authenticated, allow access to auth pages (signin/signup)
   return <>{children}</>;
 };
 
 // Protected route component to ensure user is authenticated
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, isLoading } = useAuth();
+  const location = useLocation();
   
-  // Show nothing while checking authentication
+  // Log for debugging purposes
+  useEffect(() => {
+    console.log(`ProtectedRoute - Checking auth for ${location.pathname}. Auth state:`, { isAuthenticated, isLoading });
+  }, [isAuthenticated, isLoading, location.pathname]);
+  
+  // Show loading state while checking authentication
   if (isLoading) {
-    return null;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
   }
   
   // If user is not authenticated, redirect to sign in page
@@ -97,15 +119,17 @@ const App = () => (
 // AppContent component to access auth context
 const AppContent = () => {
   const { isAuthenticated, isLoading, user } = useAuth();
+  const location = useLocation();
   
   // Log app render with auth state
   useEffect(() => {
     console.log('App rendered with auth state:', { 
       isAuthenticated, 
       isLoading, 
-      userRole: user?.role 
+      userRole: user?.role,
+      currentPath: location.pathname 
     });
-  }, [isAuthenticated, isLoading, user]);
+  }, [isAuthenticated, isLoading, user, location.pathname]);
   
   return (
     <TooltipProvider>
