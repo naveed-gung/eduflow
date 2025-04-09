@@ -44,7 +44,7 @@ import axios from 'axios';
 import { toast } from 'sonner';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import api from '@/lib/api';  // Import the API client
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Progress } from "@/components/ui/progress";
 import {
   BarChart,
@@ -68,6 +68,7 @@ interface Student {
   date: string;
   courses: number;
   progress: number;
+  photoURL?: string;
 }
 
 // Course interface
@@ -701,6 +702,7 @@ const AdminDashboard = () => {
                   >
                     <div className="flex items-center gap-3">
                         <Avatar>
+                          <AvatarImage src={student.photoURL} alt={student.name} />
                           <AvatarFallback>
                             {student.name.split(' ').map(n => n[0]).join('').toUpperCase()}
                           </AvatarFallback>

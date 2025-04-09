@@ -46,6 +46,7 @@ interface Student {
   name: string;
   email: string;
   avatarUrl?: string;
+  photoURL?: string;
   bio?: string;
   phone?: string;
   location?: string;
@@ -294,7 +295,7 @@ const AdminStudentProfilePage = () => {
           <div className="flex flex-col md:flex-row gap-6">
             <div className="flex flex-col items-center md:items-start gap-4">
               <Avatar className="h-24 w-24 mb-2">
-                <AvatarImage src={student.avatarUrl} alt={student.name} />
+                <AvatarImage src={student.avatarUrl || student.photoURL} alt={student.name} />
                 <AvatarFallback className="text-xl">{getInitials(student.name)}</AvatarFallback>
               </Avatar>
               

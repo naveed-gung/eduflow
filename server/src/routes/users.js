@@ -422,6 +422,7 @@ router.get('/recent-students', [authenticate, isAdmin], async (req, res) => {
       id: user._id,
       name: user.name,
       email: user.email,
+      photoURL: user.photoURL,
       date: user.createdAt.toISOString().split('T')[0],
       courses: user.enrolledCourses ? user.enrolledCourses.length : 0,
       progress: 0 // Placeholder - would need to calculate average progress
@@ -601,7 +602,7 @@ router.get('/', [authenticate, isAdmin], async (req, res) => {
 router.get('/:id', [authenticate, isAdmin], async (req, res) => {
   try {
     const user = await User.findById(req.params.id)
-      .select('-password')
+      .select('-password photoURL')
       .populate({
         path: 'enrolledCourses.courseId',
         select: 'title thumbnail'
@@ -611,7 +612,7 @@ router.get('/:id', [authenticate, isAdmin], async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
     
-  res.status(200).json({
+    res.status(200).json({
       success: true,
       user
     });
