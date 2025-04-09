@@ -601,30 +601,40 @@ router.get('/', [authenticate, isAdmin], async (req, res) => {
 // Get single user by ID (admin only)
 router.get('/:id', [authenticate, isAdmin], async (req, res) => {
   try {
+    console.log(`Fetching user with ID: ${req.params.id}`);
+    
     const user = await User.findById(req.params.id)
-      .select('-password photoURL')
+      .select('-password') // Exclude password but keep all other fields including photoURL
       .populate({
         path: 'enrolledCourses.courseId',
         select: 'title thumbnail'
       });
     
     if (!user) {
+      console.log(`User with ID ${req.params.id} not found`);
       return res.status(404).json({ message: 'User not found' });
     }
+    
+    console.log(`User found: ${user.name}, ID: ${user._id}, Role: ${user.role}`);
     
     res.status(200).json({
       success: true,
       user
     });
   } catch (error) {
-    console.error('Get user error:', error);
+    console.error('Get user error details:', {
+      id: req.params.id,
+      errorName: error.name,
+      errorMessage: error.message,
+      stack: error.stack
+    });
     
     // Handle invalid ObjectId
     if (error.kind === 'ObjectId') {
       return res.status(404).json({ message: 'User not found' });
     }
     
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
 

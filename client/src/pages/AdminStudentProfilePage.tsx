@@ -118,17 +118,43 @@ const AdminStudentProfilePage = () => {
     
     try {
       setIsLoading(true);
+      console.log(`Attempting to fetch student data for ID: ${id}`);
+      
       const response = await api.get(`/users/${id}`);
       
       if (response.data.success) {
+        console.log('Student data fetched successfully');
         setStudent(response.data.user);
       } else {
-        toast.error('Failed to load student data');
+        console.error('API returned failure:', response.data);
+        toast.error(response.data.message || 'Failed to load student data');
         navigate('/dashboard/admin');
       }
     } catch (error) {
       console.error('Error fetching student data:', error);
-      toast.error('Failed to load student profile');
+      
+      // Display more detailed error message
+      if (error.response) {
+        // The request was made and the server responded with a status code
+        // that falls out of the range of 2xx
+        console.error('Server response error:', {
+          status: error.response.status,
+          data: error.response.data
+        });
+        
+        const errorMessage = error.response.data?.message || 
+                            `Server error (${error.response.status})`;
+        toast.error(`Failed to load student profile: ${errorMessage}`);
+      } else if (error.request) {
+        // The request was made but no response was received
+        console.error('No response received:', error.request);
+        toast.error('Failed to load student profile: No response from server');
+      } else {
+        // Something happened in setting up the request that triggered an Error
+        console.error('Request setup error:', error.message);
+        toast.error(`Failed to load student profile: ${error.message}`);
+      }
+      
       navigate('/dashboard/admin');
     } finally {
       setIsLoading(false);
