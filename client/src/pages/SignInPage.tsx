@@ -2,9 +2,16 @@ import React, { useEffect, useRef } from 'react';
 import { SignInForm } from '@/components/SignInForm';
 import { AIAssistant } from '@/components/AIAssistant';
 import { Link } from 'react-router-dom';
+import { useAuth } from '@/context/AuthProvider';
 
 const SignInPage = () => {
+  const { isAuthenticated, user } = useAuth();
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  
+  // Log authentication state (for debugging)
+  useEffect(() => {
+    console.log('SignInPage - Auth State:', { isAuthenticated, user });
+  }, [isAuthenticated, user]);
   
   // Interactive gradient background effect
   useEffect(() => {

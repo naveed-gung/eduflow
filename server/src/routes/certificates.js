@@ -237,36 +237,6 @@ router.get('/:id', authenticate, async (req, res) => {
 
 // ADMIN ROUTES
 
-// Get all certificates (admin only) - this returns from the Certificate model
-router.get('/admin/all', [authenticate, isAdmin], async (req, res) => {
-  try {
-    const { page = 1, limit = 20 } = req.query;
-    
-    // Count total documents
-    const totalCount = await Certificate.countDocuments();
-    
-    // Paginate results
-    const certificates = await Certificate.find()
-      .populate('userId', 'name email')
-      .populate('courseId', 'title')
-      .sort({ issueDate: -1 })
-      .skip((page - 1) * limit)
-      .limit(parseInt(limit));
-    
-    res.status(200).json({
-      success: true,
-      count: certificates.length,
-      totalCount,
-      totalPages: Math.ceil(totalCount / limit),
-      currentPage: parseInt(page),
-      certificates
-    });
-  } catch (error) {
-    console.error('Get all certificates error:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
 // Get all user certificates for admin (searches in user documents)
 router.get('/admin', [authenticate, isAdmin], async (req, res) => {
   try {
@@ -323,6 +293,36 @@ router.get('/admin', [authenticate, isAdmin], async (req, res) => {
     });
   } catch (error) {
     console.error('Get admin user certificates error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Get all certificates (admin only) - this returns from the Certificate model
+router.get('/admin/all', [authenticate, isAdmin], async (req, res) => {
+  try {
+    const { page = 1, limit = 20 } = req.query;
+    
+    // Count total documents
+    const totalCount = await Certificate.countDocuments();
+    
+    // Paginate results
+    const certificates = await Certificate.find()
+      .populate('userId', 'name email')
+      .populate('courseId', 'title')
+      .sort({ issueDate: -1 })
+      .skip((page - 1) * limit)
+      .limit(parseInt(limit));
+    
+    res.status(200).json({
+      success: true,
+      count: certificates.length,
+      totalCount,
+      totalPages: Math.ceil(totalCount / limit),
+      currentPage: parseInt(page),
+      certificates
+    });
+  } catch (error) {
+    console.error('Get all certificates error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });

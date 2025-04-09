@@ -51,8 +51,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const checkAuth = async () => {
       const token = localStorage.getItem('eduflow-token');
-    const storedUser = localStorage.getItem('eduflow-user');
+      const storedUser = localStorage.getItem('eduflow-user');
       const tokenExpiry = localStorage.getItem('eduflow-token-expiry');
+      
+      console.log('AuthProvider - Checking authentication:', { 
+        hasToken: !!token, 
+        hasStoredUser: !!storedUser,
+        hasTokenExpiry: !!tokenExpiry
+      });
       
       if (token && storedUser) {
         try {
@@ -61,6 +67,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const expiryDate = new Date(tokenExpiry);
             if (expiryDate < new Date()) {
               // Token expired, clear storage
+              console.log('AuthProvider - Token expired, clearing auth data');
               localStorage.removeItem('eduflow-token');
               localStorage.removeItem('eduflow-user');
               localStorage.removeItem('eduflow-token-expiry');

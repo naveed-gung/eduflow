@@ -1,11 +1,17 @@
-
 import React, { useEffect, useRef } from 'react';
 import { SignUpForm } from '@/components/SignUpForm';
 import { AIAssistant } from '@/components/AIAssistant';
 import { Link } from 'react-router-dom';
+import { useAuth } from '@/context/AuthProvider';
 
 const SignUpPage = () => {
+  const { isAuthenticated, user } = useAuth();
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  
+  // Log authentication state (for debugging)
+  useEffect(() => {
+    console.log('SignUpPage - Auth State:', { isAuthenticated, user });
+  }, [isAuthenticated, user]);
   
   // Interactive gradient background effect - similar to SignInPage but with different colors
   useEffect(() => {
