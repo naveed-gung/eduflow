@@ -118,59 +118,6 @@ const Index = () => {
           </div>
         </div>
       </section>
-      
-      {/* Footer */}
-      <footer className="bg-muted/30 border-t border-border py-12">
-        <div className="container">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div>
-              <div className="flex items-center space-x-2 mb-4">
-                <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground grid place-items-center font-bold text-lg">E</div>
-                <span className="font-bold text-xl">EduFlow</span>
-              </div>
-              <p className="text-muted-foreground">
-                Transforming education through technology and innovation.
-              </p>
-            </div>
-            
-            <div>
-              <h3 className="font-semibold mb-4">Platform</h3>
-              <ul className="space-y-2 text-muted-foreground">
-                <li><Link to="/courses" className="hover:text-foreground">Courses</Link></li>
-                <li><Link to="/" className="hover:text-foreground">Features</Link></li>
-                <li><Link to="/" className="hover:text-foreground">Pricing</Link></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h3 className="font-semibold mb-4">Resources</h3>
-              <ul className="space-y-2 text-muted-foreground">
-                <li><Link to="/" className="hover:text-foreground">Blog</Link></li>
-                <li><Link to="/" className="hover:text-foreground">Documentation</Link></li>
-                <li><Link to="/" className="hover:text-foreground">Help Center</Link></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h3 className="font-semibold mb-4">Company</h3>
-              <ul className="space-y-2 text-muted-foreground">
-                <li><Link to="/" className="hover:text-foreground">About Us</Link></li>
-                <li><Link to="/" className="hover:text-foreground">Careers</Link></li>
-                <li><Link to="/" className="hover:text-foreground">Contact</Link></li>
-              </ul>
-            </div>
-          </div>
-          
-          <div className="border-t border-border mt-8 pt-8 flex flex-col md:flex-row justify-between items-center text-muted-foreground text-sm">
-            <p>&copy; 2023 EduFlow. All rights reserved.</p>
-            <div className="flex gap-4 mt-4 md:mt-0">
-              <Link to="/" className="hover:text-foreground">Terms</Link>
-              <Link to="/" className="hover:text-foreground">Privacy</Link>
-              <Link to="/" className="hover:text-foreground">Cookies</Link>
-            </div>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 };
